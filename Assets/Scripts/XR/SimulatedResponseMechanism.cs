@@ -80,7 +80,14 @@ namespace IVRAR.Group02.XR
                 if (clicked) return;
             }
 
-            // 4. Fallback: Check if there is an active tactical target in the scene
+            // 4. Fallback: Check if there is an active abstract stimulus or tactical target
+            var activeStimulus = FindObjectOfType<AbstractVisualStimulus>();
+            if (activeStimulus != null)
+            {
+                activeStimulus.RegisterEngagement();
+                return;
+            }
+
             var activeTarget = FindObjectOfType<TacticalTarget>();
             if (activeTarget != null)
             {

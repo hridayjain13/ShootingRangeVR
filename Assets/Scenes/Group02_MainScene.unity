@@ -703,6 +703,7 @@ GameObject:
   - component: {fileID: 1010000017}
   - component: {fileID: 1010000018}
   - component: {fileID: 1010000019}
+  - component: {fileID: 1010000020}
   m_Layer: 0
   m_Name: SimulationSystemRoot
   m_TagString: Untagged
@@ -1714,5 +1715,38 @@ MonoBehaviour:
   _exportDirectory: telemetry
   _logFileName: sensory_distraction_event_log.csv
   _safetyOverrideKey: 290
+--- !u!114 &1010000020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1000000a0004000b000000000000002, type: 3}
+  m_Name: 
+  _participantId: P01_DEMO
+  _latinSquareGroupIndex: 0
+  _conditionOrderMode: 0
+  _difficultyTier: 1
+  _trialsPerBlock: 12
+  _signalAbsentCatchTrialRatio: 0.25
+  _prioritizationTrialRatio: 0.25
+  _useDeterministicSeed: 1
+  _randomSeed: 1002
+  _spawnAnchors:
+  - {fileID: 1110000002}
+  - {fileID: 1110000004}
+  - {fileID: 1110000006}
+  _stimulusTemplatePrefab: {fileID: 0}
+  _environmentManager: {fileID: 1010000018}
+  _distractionManager: {fileID: 1010000019}
+  _telemetryLogger: {fileID: 1010000007}
+  _exportDirectory: telemetry
+  _logFileName: visual_signal_detection_trial_log.csv
+  _noSignalKey: 113
+  _altNoSignalKey: 120
+
 
 

@@ -103,7 +103,15 @@ namespace IVRAR.Group02.XR
                 return true;
             }
 
-            // 3. Check for TacticalTarget
+            // 3. Check for AbstractVisualStimulus
+            var stimulus = _hoveredObject.GetComponentInParent<AbstractVisualStimulus>();
+            if (stimulus != null)
+            {
+                stimulus.RegisterEngagement();
+                return true;
+            }
+
+            // 4. Check for TacticalTarget
             var tacticalTarget = _hoveredObject.GetComponentInParent<TacticalTarget>();
             if (tacticalTarget != null)
             {
