@@ -85,3 +85,8 @@ crashlytics-build.properties
 
 # VR Project Settings
 unityProject.vrmanifest
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
