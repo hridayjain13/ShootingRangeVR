@@ -692,6 +692,15 @@ GameObject:
   - component: {fileID: 1010000006}
   - component: {fileID: 1010000007}
   - component: {fileID: 1010000008}
+  - component: {fileID: 1010000009}
+  - component: {fileID: 1010000010}
+  - component: {fileID: 1010000011}
+  - component: {fileID: 1010000012}
+  - component: {fileID: 1010000013}
+  - component: {fileID: 1010000014}
+  - component: {fileID: 1010000015}
+  - component: {fileID: 1010000016}
+  - component: {fileID: 1010000017}
   m_Layer: 0
   m_Name: SimulationSystemRoot
   m_TagString: Untagged
@@ -921,6 +930,7 @@ GameObject:
   - component: {fileID: 1210000004}
   - component: {fileID: 1210000005}
   - component: {fileID: 1210000006}
+  - component: {fileID: 1210000007}
   m_Layer: 5
   m_Name: MainMenuCanvas
   m_TagString: Untagged
@@ -1471,3 +1481,185 @@ MonoBehaviour:
   m_NavigateAction: {fileID: 0}
   m_SubmitAction: {fileID: 0}
   m_CancelAction: {fileID: 0}
+--- !u!114 &1010000009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2371c9b8041a4af4ba49c4fdbe1a9d23, type: 3}
+  m_Name: 
+  _autoInitializeOnAwake: 1
+  _desiredTrackingSpace: 1
+  _diagnostics: {fileID: 1010000010}
+--- !u!114 &1010000010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffc508e9395a4bfd8648bb525701b72e, type: 3}
+  m_Name: 
+  _isXRInitialized: 0
+  _activeXRPlatform: None
+  _activeLoaderName: None
+  _headsetTrackingAvailable: 0
+  _isHeadsetVerified: 0
+  _headsetName: None
+  _leftControllerAvailable: 0
+  _rightControllerAvailable: 0
+  _reportedRefreshRateHz: -1
+  _isRefreshRateVerified: 0
+  _isDesktopFallbackActive: 1
+  _showOnGUI: 1
+  _showInWorldSpace: 1
+  _toggleKey: 284
+--- !u!114 &1010000011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ac9e6dc2ac24ae1a06ef1146fa66f1a, type: 3}
+  m_Name: 
+  _cameraOffset: {fileID: 0}
+  _headCamera: {fileID: 519420029}
+  _leftControllerAnchor: {fileID: 0}
+  _rightControllerAnchor: {fileID: 0}
+  _defaultEyeHeightMeters: 1.6
+  _useDeviceHeight: 1
+--- !u!114 &1010000012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32e9bbfb018b4fb6b6cd099a6704159e, type: 3}
+  m_Name: 
+  _hand: 1
+  _controllerAnchor: {fileID: 0}
+  _triggerPressThreshold: 0.5
+  _gripPressThreshold: 0.5
+--- !u!114 &1010000013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0936b486fdfe4764b167436b0bed9a4b, type: 3}
+  m_Name: 
+  _targetCenter: {x: 0, y: 1.6, z: 0}
+  _targetForward: {x: 0, y: 0, z: 1}
+  _xrOrigin: {fileID: 1010000011}
+  _leftController: {fileID: 0}
+  _rightController: {fileID: 1010000012}
+  _recenterKey: 99
+  _altRecenterKey: 114
+--- !u!114 &1010000014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab79a9c261bb4b67a8dfbf25cc08554c, type: 3}
+  m_Name: 
+  _pausePanelRoot: {fileID: 0}
+  _btnResume: {fileID: 0}
+  _btnRecenter: {fileID: 0}
+  _btnReturnToMenu: {fileID: 0}
+  _btnImmediateExit: {fileID: 0}
+  _leftController: {fileID: 0}
+  _rightController: {fileID: 1010000012}
+  _simulationManager: {fileID: 0}
+  _recenteringController: {fileID: 1010000013}
+--- !u!114 &1010000015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 400b949261f04347885bf697209a5285, type: 3}
+  m_Name: 
+  _targetCamera: {fileID: 519420029}
+  _playerOrigin: {fileID: 1010000002}
+  _moveSpeed: 3.5
+  _mouseSensitivity: 2.5
+  _invertY: 0
+  _responseMechanism: {fileID: 1010000016}
+  _rayPointer: {fileID: 1010000017}
+  _autoEnableIfNoHmd: 1
+  _toggleModeKey: 282
+  _altToggleKey: 9
+--- !u!114 &1010000016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdb911b30716405ab903a4d8bdafda74, type: 3}
+  m_Name: 
+  _rightController: {fileID: 1010000012}
+  _leftController: {fileID: 0}
+  _rayPointer: {fileID: 1010000017}
+  _hapticAmplitude: 0.7
+  _hapticDuration: 0.08
+  _responseAudioSource: {fileID: 0}
+  _simulatedShotClip: {fileID: 0}
+--- !u!114 &1010000017
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c24e43de017542a99ab64cae2bccb3f8, type: 3}
+  m_Name: 
+  _maxRayDistance: 30
+  _interactionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _lineRenderer: {fileID: 0}
+  _rayOrigin: {fileID: 519420032}
+  _idleColor: {r: 0.2, g: 0.6, b: 1, a: 0.6}
+  _hoverColor: {r: 1, g: 0.8, b: 0.1, a: 0.9}
+  _clickColor: {r: 0.1, g: 1, b: 0.3, a: 1}
+--- !u!114 &1210000007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1210000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad44d6fd66ff45389648307c02183978, type: 3}
+  m_Name: 
+  _viewingDistanceMeters: 2
+  _eyeLevelHeightMeters: 1.5
+
