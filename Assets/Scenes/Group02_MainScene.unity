@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 9
+  serializedVersion: 10
   m_Fog: 1
   m_FogColor: {r: 0.05, g: 0.06, b: 0.09, a: 1}
   m_FogMode: 3
@@ -31,19 +31,19 @@ RenderSettings:
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
   m_HaloTexture: {fileID: 0}
-  m_SpotCookie: {fileID: 0}
+  m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
-  m_GIWorkflowMode: 1
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -66,9 +66,6 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
-    m_FinalGather: 0
-    m_FinalGatherFiltering: 1
-    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -103,7 +100,7 @@ NavMeshSettings:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_BuildSettings:
-    serializedVersion: 2
+    serializedVersion: 3
     agentTypeID: 0
     agentRadius: 0.5
     agentHeight: 2
@@ -116,7 +113,7 @@ NavMeshSettings:
     cellSize: 0.16666667
     manualTileSize: 0
     tileSize: 256
-    accuratePlacement: 0
+    buildHeightMesh: 0
     maxJobWorkers: 0
     preserveTilesOutsideBounds: 0
     debug:
@@ -134,6 +131,7 @@ GameObject:
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
   - component: {fileID: 519420033}
+  - component: {fileID: 519420034}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -155,9 +153,17 @@ Camera:
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -176,7 +182,7 @@ Camera:
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
-  m_TargetEye: 3
+  m_TargetEye: -1
   m_HDR: 1
   m_AllowMSAA: 1
   m_AllowDynamicResolution: 0
@@ -203,10 +209,10 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 610000002}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &519420033
 MonoBehaviour:
@@ -219,8 +225,53 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5265c5cb4d2a4aacbb54772cae1bec77, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
   _headTransform: {fileID: 519420032}
   _sampleRateHz: 90
+--- !u!114 &519420034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
 --- !u!1 &610000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -232,6 +283,7 @@ GameObject:
   - component: {fileID: 610000002}
   - component: {fileID: 610000003}
   - component: {fileID: 610000004}
+  - component: {fileID: 610000005}
   m_Layer: 0
   m_Name: TraineeFlashlight
   m_TagString: Untagged
@@ -250,9 +302,9 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.1, y: -0.1, z: 0.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 519420032}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!108 &610000003
 Light:
@@ -262,15 +314,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 610000001}
   m_Enabled: 1
-  serializedVersion: 10
+  serializedVersion: 12
   m_Type: 0
-  m_Shape: 0
   m_Color: {r: 0.95, g: 0.95, b: 1, a: 1}
   m_Intensity: 1.6
   m_Range: 30
   m_SpotAngle: 35
   m_InnerSpotAngle: 25
-  m_CookieSize: 10
+  m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 1
     m_Resolution: -1
@@ -314,8 +365,12 @@ Light:
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
 --- !u!114 &610000004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -327,10 +382,42 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c87385c4ba0f41bcae1a30245392a399, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
   _spotLight: {fileID: 610000003}
+  _toggleAudioSource: {fileID: 0}
+  _toggleClip: {fileID: 0}
   _referenceIlluminanceLux: 100
   _referenceDistanceMeters: 1
   _fogExtinctionAlpha: 0.045
+--- !u!114 &610000005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 610000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_CustomShadowLayers: 0
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -341,6 +428,7 @@ GameObject:
   m_Component:
   - component: {fileID: 705507995}
   - component: {fileID: 705507994}
+  - component: {fileID: 705507996}
   m_Layer: 0
   m_Name: Directional Moonlight
   m_TagString: Untagged
@@ -356,15 +444,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   m_Enabled: 1
-  serializedVersion: 10
+  serializedVersion: 12
   m_Type: 1
-  m_Shape: 0
   m_Color: {r: 0.65, g: 0.75, b: 0.95, a: 1}
   m_Intensity: 0.08
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
+  m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 2
     m_Resolution: -1
@@ -408,8 +495,12 @@ Light:
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
 --- !u!4 &705507995
 Transform:
   m_ObjectHideFlags: 0
@@ -421,10 +512,39 @@ Transform:
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
   m_LocalPosition: {x: 0, y: 10, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!114 &705507996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 705507993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_CustomShadowLayers: 0
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!1 &810000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -454,9 +574,9 @@ Transform:
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
   m_LocalPosition: {x: -4, y: 2.5, z: 2}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!108 &810000003
 Light:
@@ -466,15 +586,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 810000001}
   m_Enabled: 0
-  serializedVersion: 10
+  serializedVersion: 12
   m_Type: 2
-  m_Shape: 0
   m_Color: {r: 0.95, g: 0.95, b: 1, a: 1}
   m_Intensity: 0.2
   m_Range: 15
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
+  m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 0
     m_Resolution: -1
@@ -518,8 +637,12 @@ Light:
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
 --- !u!114 &810000004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -531,6 +654,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9b0738aec0b54202a5e0c069ba21292a, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
   _strobeLight: {fileID: 810000003}
   _maxFrequencyHz: 6
   _maxPulses: 4
@@ -564,9 +688,9 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1.5, z: 5}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &910000003
 AudioSource:
@@ -579,6 +703,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
   m_Volume: 0.75
   m_Pitch: 1
@@ -675,7 +800,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 666ad99a847042519afbbb59880a3f41, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
   _audioSource: {fileID: 910000003}
+  _gunshotStartleClip: {fileID: 0}
+  _sirenAlarmClip: {fileID: 0}
+  _ricochetClip: {fileID: 0}
   _maxPermissibleGain: 0.8
 --- !u!1 &1010000001
 GameObject:
@@ -722,12 +851,12 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1110000002}
   - {fileID: 1110000004}
   - {fileID: 1110000006}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1010000003
 MonoBehaviour:
@@ -740,6 +869,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 79307d6afec84edb9b526899d1101a84, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
   _activeConfig: {fileID: 11400000, guid: 178f268e9093425fb88cbc1bf9eb2a67, type: 2}
   _environmentController: {fileID: 1010000004}
   _sensoryStressManager: {fileID: 1010000005}
@@ -760,8 +890,12 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5d2d564af13349e0b0d2615dff18d635, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
   _directionalLight: {fileID: 705507994}
   _ambientFillLight: {fileID: 0}
+  _nighttimeSkyColor: {r: 0.04, g: 0.05, b: 0.08, a: 1}
+  _nighttimeEquatorColor: {r: 0.02, g: 0.03, b: 0.04, a: 1}
+  _nighttimeFogColor: {r: 0.05, g: 0.06, b: 0.09, a: 1}
   _environmentManager: {fileID: 1010000018}
 --- !u!114 &1010000005
 MonoBehaviour:
@@ -774,6 +908,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7a41e8e3954149bc98b05624ad501a88, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
   _strobeController: {fileID: 810000004}
   _acousticController: {fileID: 910000004}
 --- !u!114 &1010000006
@@ -787,6 +922,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 544c62ce56df49ef8bf3be0717fe17c7, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
   _hostileTargetPrefab: {fileID: 4174585872248644432, guid: 9ed50aa8960846bbbd052636bf0e839d, type: 3}
   _civilianTargetPrefab: {fileID: 4174585872248644432, guid: bb2210abb6b043a0a33bb7c461432a09, type: 3}
   _spawnAnchors:
@@ -806,16 +942,28 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8d5e17e80372412b81d5702980f752b3, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
   participantCode: P01_DEMO
   sessionId: S01_BLOCK1
   conditionLabel: SensoryStress_Night
   dataStatus: unverified
+  targetSampleRateHz: 90
+  windowSamples: 90
+  _achievedSampleRateHz: 0
+  _totalSampleCount: 0
+  _droppedSampleCount: 0
+  _meanIntervalMs: 0
+  _intervalJitterMs: 0
   exportFolder: telemetry
+  _useIndependentSessionFiles: 1
   exportFileName: reaction_latency_trial_log.csv
+  continuousTelemetryFileName: continuous_telemetry_90hz.csv
   assessmentFileName: post_trial_assessments.csv
   headTransform: {fileID: 519420032}
-  sampleRateHz: 90
-  windowSamples: 90
+  simulatedLuxTarget: 0.5
+  fogDensity: 0.065
+  targetContrast: 0.35
+  ambientIntensity: 0.06
 --- !u!114 &1010000008
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -827,8 +975,350 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3814268e45f2462f884e80490a65877c, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
   _activeConfig: {fileID: 11400000, guid: 178f268e9093425fb88cbc1bf9eb2a67, type: 2}
+  _sliderFogDensity: {fileID: 0}
+  _lblFogDensityValue: {fileID: 0}
+  _sliderStrobeFrequency: {fileID: 0}
+  _lblStrobeFreqValue: {fileID: 0}
+  _sliderTrialCount: {fileID: 0}
+  _lblTrialCountValue: {fileID: 0}
+  _dropdownPreset: {fileID: 0}
+  _btnApplyPreset: {fileID: 0}
   _envController: {fileID: 1010000004}
+  _envManager: {fileID: 0}
+--- !u!114 &1010000009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2371c9b8041a4af4ba49c4fdbe1a9d23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _autoInitializeOnAwake: 1
+  _desiredTrackingSpace: 1
+  _diagnostics: {fileID: 1010000010}
+--- !u!114 &1010000010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffc508e9395a4bfd8648bb525701b72e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _isXRInitialized: 0
+  _activeXRPlatform: None
+  _activeLoaderName: None
+  _headsetTrackingAvailable: 0
+  _isHeadsetVerified: 0
+  _headsetName: None
+  _leftControllerAvailable: 0
+  _rightControllerAvailable: 0
+  _reportedRefreshRateHz: -1
+  _isRefreshRateVerified: 0
+  _isDesktopFallbackActive: 1
+  _showOnGUI: 1
+  _showInWorldSpace: 1
+  _toggleKey: 284
+--- !u!114 &1010000011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ac9e6dc2ac24ae1a06ef1146fa66f1a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _cameraOffset: {fileID: 0}
+  _headCamera: {fileID: 519420029}
+  _leftControllerAnchor: {fileID: 0}
+  _rightControllerAnchor: {fileID: 0}
+  _defaultEyeHeightMeters: 1.6
+  _useDeviceHeight: 1
+--- !u!114 &1010000012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32e9bbfb018b4fb6b6cd099a6704159e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _hand: 1
+  _controllerAnchor: {fileID: 0}
+  _triggerPressThreshold: 0.5
+  _gripPressThreshold: 0.5
+--- !u!114 &1010000013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0936b486fdfe4764b167436b0bed9a4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _targetCenter: {x: 0, y: 1.6, z: 0}
+  _targetForward: {x: 0, y: 0, z: 1}
+  _xrOrigin: {fileID: 1010000011}
+  _leftController: {fileID: 0}
+  _rightController: {fileID: 1010000012}
+  _recenterKey: 99
+  _altRecenterKey: 114
+--- !u!114 &1010000014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab79a9c261bb4b67a8dfbf25cc08554c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _pausePanelRoot: {fileID: 0}
+  _btnResume: {fileID: 0}
+  _btnRecenter: {fileID: 0}
+  _btnReturnToMenu: {fileID: 0}
+  _btnImmediateExit: {fileID: 0}
+  _leftController: {fileID: 0}
+  _rightController: {fileID: 1010000012}
+  _simulationManager: {fileID: 0}
+  _recenteringController: {fileID: 1010000013}
+--- !u!114 &1010000015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 400b949261f04347885bf697209a5285, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _targetCamera: {fileID: 519420029}
+  _playerOrigin: {fileID: 1010000002}
+  _moveSpeed: 3.5
+  _mouseSensitivity: 2.5
+  _invertY: 0
+  _responseMechanism: {fileID: 1010000016}
+  _rayPointer: {fileID: 1010000017}
+  _autoEnableIfNoHmd: 1
+  _toggleModeKey: 282
+  _altToggleKey: 9
+--- !u!114 &1010000016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdb911b30716405ab903a4d8bdafda74, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rightController: {fileID: 1010000012}
+  _leftController: {fileID: 0}
+  _rayPointer: {fileID: 1010000017}
+  _hapticAmplitude: 0.7
+  _hapticDuration: 0.08
+  _responseAudioSource: {fileID: 0}
+  _simulatedShotClip: {fileID: 0}
+--- !u!114 &1010000017
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c24e43de017542a99ab64cae2bccb3f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _maxRayDistance: 30
+  _interactionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _lineRenderer: {fileID: 0}
+  _rayOrigin: {fileID: 519420032}
+  _idleColor: {r: 0.2, g: 0.6, b: 1, a: 0.6}
+  _hoverColor: {r: 1, g: 0.8, b: 0.1, a: 0.9}
+  _clickColor: {r: 0.1, g: 1, b: 0.3, a: 1}
+--- !u!114 &1010000018
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1000000a0004000b000000000000001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _activeCondition: 2
+  _directionalLight: {fileID: 705507994}
+  _ambientFillLight: {fileID: 0}
+  _traineeFlashlight: {fileID: 0}
+  _telemetryLogger: {fileID: 1010000007}
+  _isPhysicallyCalibrated: 0
+  _calibrationStatus: Uncalibrated Simulated Illumination Target
+  _profileA_Baseline:
+    conditionName: 
+    simulatedTargetLux: 0
+    isPhysicallyCalibrated: 0
+    directionalIntensity: 0
+    directionalColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowType: 0
+    shadowStrength: 0
+    ambientIntensity: 0
+    ambientSkyColor: {r: 0, g: 0, b: 0, a: 0}
+    ambientEquatorColor: {r: 0, g: 0, b: 0, a: 0}
+    ambientGroundColor: {r: 0, g: 0, b: 0, a: 0}
+    fogEnabled: 0
+    fogMode: 0
+    fogDensity: 0
+    fogColor: {r: 0, g: 0, b: 0, a: 0}
+    targetContrastMultiplier: 0
+    targetVisibilityMaxDistance: 0
+  _profileB_ReducedNighttime:
+    conditionName: 
+    simulatedTargetLux: 0
+    isPhysicallyCalibrated: 0
+    directionalIntensity: 0
+    directionalColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowType: 0
+    shadowStrength: 0
+    ambientIntensity: 0
+    ambientSkyColor: {r: 0, g: 0, b: 0, a: 0}
+    ambientEquatorColor: {r: 0, g: 0, b: 0, a: 0}
+    ambientGroundColor: {r: 0, g: 0, b: 0, a: 0}
+    fogEnabled: 0
+    fogMode: 0
+    fogDensity: 0
+    fogColor: {r: 0, g: 0, b: 0, a: 0}
+    targetContrastMultiplier: 0
+    targetVisibilityMaxDistance: 0
+  _profileC_ReducedWithFog:
+    conditionName: 
+    simulatedTargetLux: 0
+    isPhysicallyCalibrated: 0
+    directionalIntensity: 0
+    directionalColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowType: 0
+    shadowStrength: 0
+    ambientIntensity: 0
+    ambientSkyColor: {r: 0, g: 0, b: 0, a: 0}
+    ambientEquatorColor: {r: 0, g: 0, b: 0, a: 0}
+    ambientGroundColor: {r: 0, g: 0, b: 0, a: 0}
+    fogEnabled: 0
+    fogMode: 0
+    fogDensity: 0
+    fogColor: {r: 0, g: 0, b: 0, a: 0}
+    targetContrastMultiplier: 0
+    targetVisibilityMaxDistance: 0
+  _customProfile:
+    conditionName: 
+    simulatedTargetLux: 0
+    isPhysicallyCalibrated: 0
+    directionalIntensity: 0
+    directionalColor: {r: 0, g: 0, b: 0, a: 0}
+    shadowType: 0
+    shadowStrength: 0
+    ambientIntensity: 0
+    ambientSkyColor: {r: 0, g: 0, b: 0, a: 0}
+    ambientEquatorColor: {r: 0, g: 0, b: 0, a: 0}
+    ambientGroundColor: {r: 0, g: 0, b: 0, a: 0}
+    fogEnabled: 0
+    fogMode: 0
+    fogDensity: 0
+    fogColor: {r: 0, g: 0, b: 0, a: 0}
+    targetContrastMultiplier: 0
+    targetVisibilityMaxDistance: 0
+  _enableKeyboardShortcuts: 1
+--- !u!114 &1010000019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1000000a0004000b000000000000001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _activeCondition: 3
+  _visualMode: 0
+  _audioGain: 0.25
+  _absoluteAudioSafetyLimit: 0.4
+  _visualIntensity: 0.2
+  _visualFrequencyHz: 1.2
+  _minOnsetDelaySec: 0.3
+  _maxOnsetDelaySec: 1.2
+  _eventDurationSec: 0.5
+  _useDeterministicSeed: 1
+  _randomSeed: 42
+  _acousticController: {fileID: 910000004}
+  _strobeController: {fileID: 810000004}
+  _peripheralGlareLight: {fileID: 0}
+  _telemetryLogger: {fileID: 1010000007}
+  _exportDirectory: telemetry
+  _logFileName: sensory_distraction_event_log.csv
+  _safetyOverrideKey: 290
+--- !u!114 &1010000020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1000000a0004000b000000000000002, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _participantId: P01_DEMO
+  _latinSquareGroupIndex: 0
+  _conditionOrderMode: 0
+  _difficultyTier: 1
+  _trialsPerBlock: 12
+  _signalAbsentCatchTrialRatio: 0.25
+  _prioritizationTrialRatio: 0.25
+  _useDeterministicSeed: 1
+  _randomSeed: 1002
+  _spawnAnchors:
+  - {fileID: 1110000002}
+  - {fileID: 1110000004}
+  - {fileID: 1110000006}
+  _stimulusTemplatePrefab: {fileID: 0}
+  _environmentManager: {fileID: 1010000018}
+  _distractionManager: {fileID: 1010000019}
+  _telemetryLogger: {fileID: 1010000007}
+  _exportDirectory: telemetry
+  _logFileName: visual_signal_detection_trial_log.csv
+  _noSignalKey: 113
+  _altNoSignalKey: 120
 --- !u!1 &1110000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -856,9 +1346,9 @@ Transform:
   m_LocalRotation: {x: 0, y: 0.17364818, z: 0, w: 0.9848077}
   m_LocalPosition: {x: -3.5, y: 1.2, z: 12}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1010000002}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 20, z: 0}
 --- !u!1 &1110000003
 GameObject:
@@ -887,9 +1377,9 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1.2, z: 14}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1010000002}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1110000005
 GameObject:
@@ -918,9 +1408,9 @@ Transform:
   m_LocalRotation: {x: 0, y: -0.17364818, z: 0, w: 0.9848077}
   m_LocalPosition: {x: 3.5, y: 1.2, z: 12}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1010000002}
-  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: -20, z: 0}
 --- !u!1 &1210000001
 GameObject:
@@ -951,8 +1441,9 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1210000001}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.6, z: 2.5}
+  m_LocalPosition: {x: 0, y: 0, z: 2.5}
   m_LocalScale: {x: 0.002, y: 0.002, z: 0.002}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1310000002}
   - {fileID: 1410000002}
@@ -960,7 +1451,6 @@ RectTransform:
   - {fileID: 1610000002}
   - {fileID: 1710000002}
   m_Father: {fileID: 0}
-  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -984,7 +1474,9 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
@@ -999,6 +1491,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
   m_IgnoreReversedGraphics: 1
   m_BlockingObjects: 0
   m_BlockingMask:
@@ -1015,6 +1508,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9443b222976b4475a152f15ec293be80, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
   _mainMenuPanel: {fileID: 1310000001}
   _participantSetupPanel: {fileID: 1410000001}
   _researchConfigPanel: {fileID: 1510000001}
@@ -1044,8 +1538,28 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1ca530838db44100b7422e8c2d7cf9cd, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
+  _inputParticipantCode: {fileID: 0}
+  _inputSessionId: {fileID: 0}
+  _dropdownCondition: {fileID: 0}
+  _lblStatus: {fileID: 0}
+  _btnSave: {fileID: 0}
   _telemetryLogger: {fileID: 1010000007}
   _simulationManager: {fileID: 1010000003}
+--- !u!114 &1210000007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1210000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad44d6fd66ff45389648307c02183978, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _viewingDistanceMeters: 2
+  _eyeLevelHeightMeters: 1.5
 --- !u!1 &1310000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -1055,6 +1569,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1310000002}
+  - component: {fileID: 1310000003}
+  - component: {fileID: 1310000004}
+  - component: {fileID: 1310000008}
+  - component: {fileID: 1310000010}
+  - component: {fileID: 1310000012}
+  - component: {fileID: 1310000014}
+  - component: {fileID: 1310000016}
+  - component: {fileID: 1310000017}
   m_Layer: 5
   m_Name: MainMenuPanel
   m_TagString: Untagged
@@ -1072,10 +1594,10 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1310000007}
   m_Father: {fileID: 1210000002}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -1093,8 +1615,17 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
   m_Name: 
-  m_Text: "IVRAR GROUP 02"
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
   m_FontData:
+    m_Font: {fileID: 0}
     m_FontSize: 38
     m_FontStyle: 1
     m_BestFit: 0
@@ -1106,6 +1637,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
+  m_Text: IVRAR GROUP 02
 --- !u!114 &1310000004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1117,8 +1649,17 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
   m_Name: 
-  m_Text: "Immersive VR Sensory-Stress Defensive Security Training under Low Visibility"
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
   m_FontData:
+    m_Font: {fileID: 0}
     m_FontSize: 20
     m_FontStyle: 0
     m_BestFit: 0
@@ -1130,6 +1671,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
+  m_Text: Immersive VR Sensory-Stress Defensive Security Training under Low Visibility
 --- !u!1 &1310000005
 GameObject:
   m_ObjectHideFlags: 0
@@ -1158,6 +1700,39 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 0}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!224 &1310000007
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1168,9 +1743,9 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1310000002}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1188,6 +1763,39 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1310000003}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1310000010
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1199,6 +1807,39 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1310000003}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1310000012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1210,6 +1851,39 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1310000003}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1310000014
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1221,6 +1895,39 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1310000003}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1310000016
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1232,6 +1939,47 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1310000003}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!222 &1310000017
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1310000001}
+  m_CullTransparentMesh: 1
 --- !u!1 &1410000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -1241,6 +1989,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1410000002}
+  - component: {fileID: 1410000006}
   m_Layer: 5
   m_Name: ParticipantSetupPanel
   m_TagString: Untagged
@@ -1258,9 +2007,9 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1210000002}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -1278,6 +2027,39 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 0}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1510000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -1287,6 +2069,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1510000002}
+  - component: {fileID: 1510000006}
   m_Layer: 5
   m_Name: ResearchConfigPanel
   m_TagString: Untagged
@@ -1304,9 +2087,9 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1210000002}
-  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -1324,6 +2107,39 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 0}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1610000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -1333,6 +2149,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1610000002}
+  - component: {fileID: 1610000006}
   m_Layer: 5
   m_Name: CreditsPanel
   m_TagString: Untagged
@@ -1350,9 +2167,9 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1210000002}
-  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -1370,6 +2187,39 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 0}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1710000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -1379,6 +2229,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1710000002}
+  - component: {fileID: 1710000006}
   m_Layer: 5
   m_Name: AttributionPanel
   m_TagString: Untagged
@@ -1396,9 +2247,9 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1210000002}
-  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -1416,6 +2267,39 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 0}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1810000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -1445,9 +2329,9 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1810000003
 MonoBehaviour:
@@ -1460,6 +2344,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
   m_FirstSelected: {fileID: 0}
   m_sendNavigationEvents: 1
   m_DragThreshold: 10
@@ -1474,279 +2359,34 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
   m_Name: 
+  m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
   m_MoveRepeatDelay: 0.5
   m_MoveRepeatRate: 0.1
   m_XRTrackingOrigin: {fileID: 0}
   m_ActionsAsset: {fileID: 0}
   m_PointAction: {fileID: 0}
+  m_MoveAction: {fileID: 0}
+  m_SubmitAction: {fileID: 0}
+  m_CancelAction: {fileID: 0}
   m_LeftClickAction: {fileID: 0}
   m_MiddleClickAction: {fileID: 0}
   m_RightClickAction: {fileID: 0}
   m_ScrollWheelAction: {fileID: 0}
-  m_NavigateAction: {fileID: 0}
-  m_SubmitAction: {fileID: 0}
-  m_CancelAction: {fileID: 0}
---- !u!114 &1010000009
-MonoBehaviour:
+  m_TrackedDevicePositionAction: {fileID: 0}
+  m_TrackedDeviceOrientationAction: {fileID: 0}
+  m_DeselectOnBackgroundClick: 1
+  m_PointerBehavior: 0
+  m_CursorLockBehavior: 0
+  m_ScrollDeltaPerTick: 6
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
   m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1010000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2371c9b8041a4af4ba49c4fdbe1a9d23, type: 3}
-  m_Name: 
-  _autoInitializeOnAwake: 1
-  _desiredTrackingSpace: 1
-  _diagnostics: {fileID: 1010000010}
---- !u!114 &1010000010
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1010000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ffc508e9395a4bfd8648bb525701b72e, type: 3}
-  m_Name: 
-  _isXRInitialized: 0
-  _activeXRPlatform: None
-  _activeLoaderName: None
-  _headsetTrackingAvailable: 0
-  _isHeadsetVerified: 0
-  _headsetName: None
-  _leftControllerAvailable: 0
-  _rightControllerAvailable: 0
-  _reportedRefreshRateHz: -1
-  _isRefreshRateVerified: 0
-  _isDesktopFallbackActive: 1
-  _showOnGUI: 1
-  _showInWorldSpace: 1
-  _toggleKey: 284
---- !u!114 &1010000011
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1010000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9ac9e6dc2ac24ae1a06ef1146fa66f1a, type: 3}
-  m_Name: 
-  _cameraOffset: {fileID: 0}
-  _headCamera: {fileID: 519420029}
-  _leftControllerAnchor: {fileID: 0}
-  _rightControllerAnchor: {fileID: 0}
-  _defaultEyeHeightMeters: 1.6
-  _useDeviceHeight: 1
---- !u!114 &1010000012
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1010000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 32e9bbfb018b4fb6b6cd099a6704159e, type: 3}
-  m_Name: 
-  _hand: 1
-  _controllerAnchor: {fileID: 0}
-  _triggerPressThreshold: 0.5
-  _gripPressThreshold: 0.5
---- !u!114 &1010000013
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1010000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0936b486fdfe4764b167436b0bed9a4b, type: 3}
-  m_Name: 
-  _targetCenter: {x: 0, y: 1.6, z: 0}
-  _targetForward: {x: 0, y: 0, z: 1}
-  _xrOrigin: {fileID: 1010000011}
-  _leftController: {fileID: 0}
-  _rightController: {fileID: 1010000012}
-  _recenterKey: 99
-  _altRecenterKey: 114
---- !u!114 &1010000014
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1010000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ab79a9c261bb4b67a8dfbf25cc08554c, type: 3}
-  m_Name: 
-  _pausePanelRoot: {fileID: 0}
-  _btnResume: {fileID: 0}
-  _btnRecenter: {fileID: 0}
-  _btnReturnToMenu: {fileID: 0}
-  _btnImmediateExit: {fileID: 0}
-  _leftController: {fileID: 0}
-  _rightController: {fileID: 1010000012}
-  _simulationManager: {fileID: 0}
-  _recenteringController: {fileID: 1010000013}
---- !u!114 &1010000015
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1010000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 400b949261f04347885bf697209a5285, type: 3}
-  m_Name: 
-  _targetCamera: {fileID: 519420029}
-  _playerOrigin: {fileID: 1010000002}
-  _moveSpeed: 3.5
-  _mouseSensitivity: 2.5
-  _invertY: 0
-  _responseMechanism: {fileID: 1010000016}
-  _rayPointer: {fileID: 1010000017}
-  _autoEnableIfNoHmd: 1
-  _toggleModeKey: 282
-  _altToggleKey: 9
---- !u!114 &1010000016
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1010000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bdb911b30716405ab903a4d8bdafda74, type: 3}
-  m_Name: 
-  _rightController: {fileID: 1010000012}
-  _leftController: {fileID: 0}
-  _rayPointer: {fileID: 1010000017}
-  _hapticAmplitude: 0.7
-  _hapticDuration: 0.08
-  _responseAudioSource: {fileID: 0}
-  _simulatedShotClip: {fileID: 0}
---- !u!114 &1010000017
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1010000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c24e43de017542a99ab64cae2bccb3f8, type: 3}
-  m_Name: 
-  _maxRayDistance: 30
-  _interactionLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  _lineRenderer: {fileID: 0}
-  _rayOrigin: {fileID: 519420032}
-  _idleColor: {r: 0.2, g: 0.6, b: 1, a: 0.6}
-  _hoverColor: {r: 1, g: 0.8, b: 0.1, a: 0.9}
-  _clickColor: {r: 0.1, g: 1, b: 0.3, a: 1}
---- !u!114 &1210000007
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1210000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad44d6fd66ff45389648307c02183978, type: 3}
-  m_Name: 
-  _viewingDistanceMeters: 2
-  _eyeLevelHeightMeters: 1.5
---- !u!114 &1010000018
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1010000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e1000000a0004000b000000000000001, type: 3}
-  m_Name: 
-  _activeCondition: 2
-  _directionalLight: {fileID: 705507994}
-  _ambientFillLight: {fileID: 0}
-  _traineeFlashlight: {fileID: 0}
-  _telemetryLogger: {fileID: 1010000007}
-  _isPhysicallyCalibrated: 0
-  _calibrationStatus: Uncalibrated Simulated Illumination Target
-  _enableKeyboardShortcuts: 1
---- !u!114 &1010000019
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1010000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d1000000a0004000b000000000000001, type: 3}
-  m_Name: 
-  _activeCondition: 3
-  _visualMode: 0
-  _audioGain: 0.25
-  _absoluteAudioSafetyLimit: 0.4
-  _visualIntensity: 0.2
-  _visualFrequencyHz: 1.2
-  _minOnsetDelaySec: 0.3
-  _maxOnsetDelaySec: 1.2
-  _eventDurationSec: 0.5
-  _useDeterministicSeed: 1
-  _randomSeed: 42
-  _acousticController: {fileID: 910000004}
-  _strobeController: {fileID: 810000004}
-  _peripheralGlareLight: {fileID: 0}
-  _telemetryLogger: {fileID: 1010000007}
-  _exportDirectory: telemetry
-  _logFileName: sensory_distraction_event_log.csv
-  _safetyOverrideKey: 290
---- !u!114 &1010000020
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1010000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c1000000a0004000b000000000000002, type: 3}
-  m_Name: 
-  _participantId: P01_DEMO
-  _latinSquareGroupIndex: 0
-  _conditionOrderMode: 0
-  _difficultyTier: 1
-  _trialsPerBlock: 12
-  _signalAbsentCatchTrialRatio: 0.25
-  _prioritizationTrialRatio: 0.25
-  _useDeterministicSeed: 1
-  _randomSeed: 1002
-  _spawnAnchors:
-  - {fileID: 1110000002}
-  - {fileID: 1110000004}
-  - {fileID: 1110000006}
-  _stimulusTemplatePrefab: {fileID: 0}
-  _environmentManager: {fileID: 1010000018}
-  _distractionManager: {fileID: 1010000019}
-  _telemetryLogger: {fileID: 1010000007}
-  _exportDirectory: telemetry
-  _logFileName: visual_signal_detection_trial_log.csv
-  _noSignalKey: 113
-  _altNoSignalKey: 120
-
-
-
+  m_Roots:
+  - {fileID: 519420032}
+  - {fileID: 705507995}
+  - {fileID: 810000002}
+  - {fileID: 910000002}
+  - {fileID: 1010000002}
+  - {fileID: 1810000002}
+  - {fileID: 1210000002}

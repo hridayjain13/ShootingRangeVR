@@ -36,24 +36,38 @@ namespace IVRAR.Group02.XR
         private void Awake()
         {
             if (_targetCamera == null) _targetCamera = Camera.main;
+            if (_targetCamera == null) _targetCamera = FindObjectOfType<Camera>();
             if (_playerOrigin == null) _playerOrigin = transform;
             if (_responseMechanism == null) _responseMechanism = FindObjectOfType<SimulatedResponseMechanism>();
             if (_rayPointer == null) _rayPointer = FindObjectOfType<XRRayInteractorPointer>();
+
+            if (_targetCamera != null)
+            {
+                _targetCamera.enabled = true;
+                _targetCamera.targetEyeMask = TargetEyeMask.All;
+            }
         }
 
         private void Start()
         {
+            if (_targetCamera == null)
+            {
+                _targetCamera = Camera.main ?? FindObjectOfType<Camera>();
+            }
+
+            if (_targetCamera != null)
+            {
+                _targetCamera.enabled = true;
+                _targetCamera.targetEyeMask = TargetEyeMask.All;
+                _yaw = _targetCamera.transform.eulerAngles.y;
+                _pitch = _targetCamera.transform.eulerAngles.x;
+            }
+
             if (_autoEnableIfNoHmd)
             {
                 // If XR is not active or no physical HMD is connected, engage desktop testing
                 bool isHmdActive = XRSettings.isDeviceActive;
                 SetDesktopMode(!isHmdActive);
-            }
-
-            if (_targetCamera != null)
-            {
-                _yaw = _targetCamera.transform.eulerAngles.y;
-                _pitch = _targetCamera.transform.eulerAngles.x;
             }
         }
 
@@ -77,6 +91,12 @@ namespace IVRAR.Group02.XR
             IsDesktopModeActive = active;
             _cursorLocked = active;
             ApplyCursorLock(_cursorLocked);
+
+            if (_targetCamera != null)
+            {
+                _targetCamera.enabled = true;
+                _targetCamera.targetEyeMask = TargetEyeMask.All;
+            }
 
             Debug.Log("[DesktopFallbackController] Desktop Mode: " + (IsDesktopModeActive ? "ENABLED" : "DISABLED"));
         }
