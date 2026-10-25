@@ -53,6 +53,13 @@ namespace IVRAR.Group02.Environment
             // 2. Ensure Player Camera has DesktopFallbackController and AudioListener
             EnsurePlayerDesktopController();
 
+            // Ensure TacticalDrillGameManager is present
+            if (FindObjectOfType<TacticalDrillGameManager>() == null)
+            {
+                GameObject drillObj = new GameObject("TacticalDrillGameManager");
+                drillObj.AddComponent<TacticalDrillGameManager>();
+            }
+
             GameObject root = GameObject.Find(ROOT_NAME);
             if (root != null)
             {
@@ -129,6 +136,36 @@ namespace IVRAR.Group02.Environment
             rightWall.transform.position = new Vector3(15f, 4.0f, 15f);
             rightWall.transform.localScale = new Vector3(1f, 8f, 40f);
             if (wallMat != null) rightWall.GetComponent<Renderer>().material = wallMat;
+
+            // Distance Markers along both walls (5m, 10m, 15m, 20m, 25m)
+            Material signMat = CreateMaterial(new Color(0.85f, 0.70f, 0.15f, 1f));
+            float[] distances = { 5f, 10f, 15f, 20f, 25f };
+            foreach (float d in distances)
+            {
+                // Left Wall Sign
+                GameObject signL = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                signL.name = $"MarkerSign_{d}m_L";
+                signL.transform.SetParent(parent, false);
+                signL.transform.position = new Vector3(-14.4f, 2.2f, d);
+                signL.transform.localScale = new Vector3(0.12f, 0.65f, 0.95f);
+                if (signMat != null) signL.GetComponent<Renderer>().material = signMat;
+
+                // Right Wall Sign
+                GameObject signR = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                signR.name = $"MarkerSign_{d}m_R";
+                signR.transform.SetParent(parent, false);
+                signR.transform.position = new Vector3(14.4f, 2.2f, d);
+                signR.transform.localScale = new Vector3(0.12f, 0.65f, 0.95f);
+                if (signMat != null) signR.GetComponent<Renderer>().material = signMat;
+            }
+
+            // Firing Line Hazard Stripe on Floor
+            GameObject firingLine = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            firingLine.name = "FiringLineHazardStripe";
+            firingLine.transform.SetParent(parent, false);
+            firingLine.transform.position = new Vector3(0f, 0.02f, 0.55f);
+            firingLine.transform.localScale = new Vector3(18f, 0.02f, 0.25f);
+            if (signMat != null) firingLine.GetComponent<Renderer>().material = signMat;
         }
 
         private static void BuildShootingBench(Transform parent)
@@ -322,9 +359,8 @@ namespace IVRAR.Group02.Environment
                 beacon.GetComponent<Renderer>().material = ledMat;
             }
 
-            // 6. Add Hit Reaction and IDamageable
-            var hitReaction = enemy.AddComponent<TargetHitReaction>();
-            hitReaction.SetHasSway(hasSway);
+            // 6. Add Pop-Up Controller and Target Discrimination
+            enemy.AddComponent<TargetPopUpController>();
         }
 
         // ==========================================

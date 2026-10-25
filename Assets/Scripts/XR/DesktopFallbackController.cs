@@ -652,8 +652,12 @@ namespace IVRAR.Group02.XR
             var hitObj = hit.transform.gameObject;
             string objName = hitObj.name.ToLower();
 
+            var popUpCtrl = hitObj.GetComponentInParent<IVRAR.Group02.Environment.TargetPopUpController>();
+            bool isCivilian = (popUpCtrl != null && popUpCtrl.Classification == IVRAR.Group02.Environment.TargetClassification.CivilianFriendly) ||
+                              objName.Contains("civilian") || objName.Contains("friendly");
+
             bool isHeadshot = objName.Contains("head") || hitObj.CompareTag("Player") || hit.point.y > 1.65f;
-            bool isEnemy = objName.Contains("target") || objName.Contains("enemy") || objName.Contains("hostile") || objName.Contains("silhouette");
+            bool isEnemy = !isCivilian && (objName.Contains("target") || objName.Contains("enemy") || objName.Contains("hostile") || objName.Contains("silhouette") || popUpCtrl != null);
 
             var damageData = new DamageData
             {
@@ -674,7 +678,17 @@ namespace IVRAR.Group02.XR
                 humanTarget.Damage(damageData);
             }
 
-            if (isEnemy || damageable != null || humanTarget != null)
+            if (isCivilian)
+            {
+                // Friendly Fire / False Alarm Penalty
+                _score = Mathf.Max(0, _score - 150);
+                _comboMultiplier = 1;
+                _hitMarkerTimer = 0.35f;
+                _lastHitText = "⚠ CEASE FIRE! CIVILIAN CASUALTY (-150 PTS) ⚠";
+                _lastHitColor = Color.red;
+                _hitTextTimer = 1.6f;
+            }
+            else if (isEnemy || damageable != null || humanTarget != null)
             {
                 _totalHits++;
                 _hitMarkerTimer = 0.28f;
@@ -963,7 +977,7 @@ namespace IVRAR.Group02.XR
             if (_showHelpOverlay)
             {
                 GUI.color = new Color(0.05f, 0.07f, 0.10f, 0.90f);
-                GUI.Box(new Rect(Screen.width - 340, 15, 325, 150), GUIContent.none);
+                GUI.Box(new Rect(Screen.width - 340, 15, 325, 175), GUIContent.none);
 
                 GUI.color = Color.cyan;
                 GUIStyle guideStyle = new GUIStyle(GUI.skin.label) { fontSize = 11, fontStyle = FontStyle.Bold };
@@ -971,11 +985,120 @@ namespace IVRAR.Group02.XR
                     "<b>TACTICAL FPS CONTROLS (F1 to toggle)</b>\n" +
                     "• <b>WASD</b>: Move | <b>Left Shift</b>: Sprint\n" +
                     "• <b>Mouse</b>: Look | <b>Alt / Esc</b>: Unlock Cursor\n" +
-                    "• <b>Right Mouse (Hold)</b>: Aim Down Sights (ADS) & Zoom\n" +
-                    "• <b>Left Mouse</b>: Fire Glock 17\n" +
-                    "• <b>R</b>: Reload | <b>L</b>: Toggle Laser Sight\n" +
-                    "• <b>F</b>: Toggle Flashlight | <b>Tab</b>: Toggle Desktop/VR";
-                GUI.Label(new Rect(Screen.width - 330, 20, 310, 140), guide, guideStyle);
+                    "• <b>Right Mouse (Hold)</b>: Aim Down Sights (ADS)\n" +
+                    "• <b>Left Mouse</b>: Fire Glock 17 | <b>R</b>: Reload\n" +
+                    "• <b>G</b>: Start / End Timed Tactical Drill (45s)\n" +
+                    "• <b>N</b>: Toggle Night-Ops Sensory Stress Mode\n" +
+                    "• <b>L</b>: Laser | <b>F</b>: Light | <b>Tab</b>: VR Mode";
+                GUI.Label(new Rect(Screen.width - 330, 20, 310, 165), guide, guideStyle);
+            }
+
+            DrawDrillStateUI();
+        }
+
+        private void DrawDrillStateUI()
+        {
+            var drillMgr = IVRAR.Group02.Environment.TacticalDrillGameManager.Instance;
+            if (drillMgr == null) return;
+
+            float cx = Screen.width / 2f;
+
+            if (drillMgr.CurrentState == IVRAR.Group02.Environment.DrillState.Countdown)
+            {
+                // Giant Countdown in Center
+                GUI.color = Color.yellow;
+                GUIStyle cdStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 42,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter
+                };
+                int cdNum = Mathf.CeilToInt(drillMgr.CountdownTimer);
+                string cdMsg = cdNum > 0 ? $"READY... {cdNum}" : "ENGAGE!";
+                GUI.Label(new Rect(cx - 200, Screen.height * 0.35f, 400, 60), cdMsg, cdStyle);
+            }
+            else if (drillMgr.CurrentState == IVRAR.Group02.Environment.DrillState.ActiveDrill)
+            {
+                // Top-Center Active Drill Status Bar
+                GUI.color = new Color(0.06f, 0.08f, 0.12f, 0.90f);
+                GUI.Box(new Rect(cx - 260, 15, 520, 48), GUIContent.none);
+
+                GUI.color = Color.white;
+                GUIStyle drillStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 13,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter
+                };
+                string statLine = $"TIME: {drillMgr.TimeRemaining:F1}s  |  SCORE: {drillMgr.DrillScore}  |  HOSTILES: {drillMgr.HostilesNeutralized}  |  CIVILIANS SPARED: {drillMgr.CiviliansSpared}  |  d': {drillMgr.DPrimeScore:F2}";
+                GUI.Label(new Rect(cx - 250, 25, 500, 28), statLine, drillStyle);
+            }
+            else if (drillMgr.CurrentState == IVRAR.Group02.Environment.DrillState.FreePractice)
+            {
+                // Free Practice Prompt at Top Center
+                GUI.color = new Color(0.06f, 0.08f, 0.12f, 0.75f);
+                GUI.Box(new Rect(cx - 210, 15, 420, 36), GUIContent.none);
+
+                GUI.color = Color.cyan;
+                GUIStyle fpStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 11,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter
+                };
+                GUI.Label(new Rect(cx - 200, 20, 400, 24), "FREE PRACTICE: PRESS [G] TO START 45s DRILL  |  [N] NIGHT-OPS", fpStyle);
+            }
+            else if (drillMgr.CurrentState == IVRAR.Group02.Environment.DrillState.AfterActionReport)
+            {
+                // After-Action Report Modal in Screen Center
+                float w = 480;
+                float h = 330;
+                float left = cx - w / 2f;
+                float top = Screen.height / 2f - h / 2f;
+
+                GUI.color = new Color(0.04f, 0.06f, 0.09f, 0.96f);
+                GUI.Box(new Rect(left, top, w, h), GUIContent.none);
+
+                GUI.color = Color.yellow;
+                GUIStyle headerStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 16,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter
+                };
+                GUI.Label(new Rect(left, top + 15, w, 28), "★ TACTICAL DRILL AFTER-ACTION REPORT ★", headerStyle);
+
+                // Big Grade Badge
+                string rank = drillMgr.GetDrillRank();
+                Color rankCol = rank == "S" ? new Color(1f, 0.85f, 0.1f) : (rank == "A" ? Color.green : (rank == "B" ? Color.cyan : Color.white));
+                GUI.color = rankCol;
+                GUIStyle rankStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 44,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter
+                };
+                GUI.Label(new Rect(left, top + 45, w, 55), $"GRADE: {rank}", rankStyle);
+
+                // Stats lines
+                GUI.color = Color.white;
+                GUIStyle repStyle = new GUIStyle(GUI.skin.label) { fontSize = 12, alignment = TextAnchor.MiddleLeft };
+                float y = top + 105;
+                GUI.Label(new Rect(left + 50, y, 380, 22), $"• Final Combat Score: {drillMgr.DrillScore} PTS", repStyle); y += 24;
+                GUI.Label(new Rect(left + 50, y, 380, 22), $"• Hostiles Neutralized: {drillMgr.HostilesNeutralized}  |  Missed: {drillMgr.HostilesMissed}", repStyle); y += 24;
+                GUI.Label(new Rect(left + 50, y, 380, 22), $"• Civilian Casualties: {drillMgr.CivilianCasualties}  |  Spared: {drillMgr.CiviliansSpared}", repStyle); y += 24;
+                GUI.Label(new Rect(left + 50, y, 380, 22), $"• Average Reaction Latency: {drillMgr.AverageReactionLatencyMs:F1} ms", repStyle); y += 24;
+                GUI.Label(new Rect(left + 50, y, 380, 22), $"• Signal Detection (d-prime): {drillMgr.DPrimeScore:F2}", repStyle); y += 24;
+                GUI.Label(new Rect(left + 50, y, 380, 22), $"• Headshots: {drillMgr.HeadshotCount}", repStyle); y += 30;
+
+                GUI.color = Color.cyan;
+                GUIStyle promptStyle = new GUIStyle(GUI.skin.label)
+                {
+                    fontSize = 12,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter
+                };
+                GUI.Label(new Rect(left, y, w, 26), "PRESS [G] TO START NEW DRILL  |  PRESS [N] TO TOGGLE NIGHT-OPS", promptStyle);
             }
         }
 
