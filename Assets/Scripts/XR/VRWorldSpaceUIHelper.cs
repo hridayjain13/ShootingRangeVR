@@ -24,7 +24,17 @@ namespace IVRAR.Group02.XR
             var canvas = GetComponent<Canvas>();
             if (canvas == null) return;
 
-            canvas.renderMode = RenderMode.WorldSpace;
+            if (UnityEngine.XR.XRSettings.isDeviceActive)
+            {
+                canvas.renderMode = RenderMode.WorldSpace;
+                transform.position = new Vector3(0f, _eyeLevelHeightMeters, _viewingDistanceMeters);
+                transform.rotation = Quaternion.identity;
+                transform.localScale = Vector3.one * 0.0018f;
+            }
+            else
+            {
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            }
 
             // Ensure GraphicRaycaster is present
             if (GetComponent<GraphicRaycaster>() == null)

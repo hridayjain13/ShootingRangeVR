@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Interfaces;
 using Particle;
 using Resources;
@@ -58,17 +58,48 @@ namespace Targets
         public void Damage(DamageData damageData)
         {
             var hitPosition = damageData.contactPoint;
-            var distance = Vector3.Distance(_center.position, hitPosition);
+            float distance = 0f;
+            if (_center != null)
+            {
+                distance = Vector3.Distance(_center.position, hitPosition);
+            }
 
-            if (distance > _radius) distance = _radius;
+            if (_radius > 0.001f && distance > _radius) distance = _radius;
 
-            var accuracy = (int) ((_radius - distance) / _radius * 100f);
+            var accuracy = _radius > 0.001f ? (int) ((_radius - distance) / _radius * 100f) : 100;
             _count++;
             
-            var particle = Instantiate(_particle, hitPosition, damageData.normalPoint);
-            particle.Play();
+            if (_particle != null)
+            {
+                var particle = Instantiate(_particle, hitPosition, damageData.normalPoint);
+                particle.Play();
+            }
+
+            // Visual hit reaction: slight wobble or impulse
+            StartCoroutine(HitImpulseCoroutine());
             
             OnHit?.Invoke(accuracy, _count);
+        }
+
+        private System.Collections.IEnumerator HitImpulseCoroutine()
+        {
+            Quaternion origRot = transform.localRotation;
+            Quaternion tiltRot = origRot * Quaternion.Euler(-6f, 0f, UnityEngine.Random.Range(-4f, 4f));
+            float elapsed = 0f;
+            while (elapsed < 0.08f)
+            {
+                transform.localRotation = Quaternion.Slerp(origRot, tiltRot, elapsed / 0.08f);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            elapsed = 0f;
+            while (elapsed < 0.15f)
+            {
+                transform.localRotation = Quaternion.Slerp(tiltRot, origRot, elapsed / 0.15f);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            transform.localRotation = origRot;
         }
     }
 }

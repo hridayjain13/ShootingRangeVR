@@ -89,4 +89,8 @@ unityProject.vrmanifest
 # Python artifacts
 __pycache__/
 *.py[cod]
-*$py.class
+*$py.class
+
+# IDE and solution files
+.vscode/
+*.slnx

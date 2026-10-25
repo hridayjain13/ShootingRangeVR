@@ -169,15 +169,55 @@ namespace IVRAR.Group02.Environment
                 _telemetryLogger = FindObjectOfType<ReactionLatencyTelemetryLogger>();
             }
 
-            if (_traineeFlashlight == null)
+            EnsureStagingEnvironment();
+        }
+
+        private void EnsureStagingEnvironment()
+        {
+            if (FindObjectsOfType<MeshRenderer>().Length == 0)
             {
-                _traineeFlashlight = FindObjectOfType<FlashlightController>();
+                // Create a clean training ground floor for the menu/staging area
+                GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                floor.name = "StagingTrainingFloor";
+                floor.transform.position = new Vector3(0f, 0f, 7.5f);
+                floor.transform.localScale = new Vector3(3f, 1f, 3f);
+                
+                Renderer r = floor.GetComponent<Renderer>();
+                if (r != null)
+                {
+                    Shader s = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                    if (s != null)
+                    {
+                        Material m = new Material(s);
+                        m.color = new Color(0.12f, 0.15f, 0.20f, 1f);
+                        r.material = m;
+                    }
+                }
+
+                // Add overhead staging illumination
+                GameObject lightObj = new GameObject("StagingCeilingLight");
+                lightObj.transform.position = new Vector3(0f, 4f, 2.5f);
+                Light l = lightObj.AddComponent<Light>();
+                l.type = LightType.Point;
+                l.range = 18f;
+                l.intensity = 1.8f;
+                l.color = new Color(0.92f, 0.96f, 1.0f);
             }
         }
 
         private void Start()
         {
-            ApplyCondition(_activeCondition);
+            CaptureBaselineEnvironment();
+            // Maintain pleasant ambient visibility while navigating the startup menu.
+            // Low-visibility stress conditions are applied when a simulation trial starts.
+            if (_directionalLight != null && _directionalLight.intensity < 0.8f)
+            {
+                _directionalLight.intensity = 1.0f;
+            }
+            if (RenderSettings.ambientIntensity < 0.5f)
+            {
+                RenderSettings.ambientIntensity = 0.8f;
+            }
         }
 
         private void Update()
