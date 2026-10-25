@@ -22,7 +22,8 @@ namespace IVRAR.Group02.Core
         [Header("Subsystem References")]
         [SerializeField] private LowVisibilityEnvironmentController _environmentController;
         [SerializeField] private SensoryStressManager _sensoryStressManager;
-        [SerializeField] private SensoryStressTargetManager _targetManager;
+        [SerializeField] private IVRAR.Group02.SensoryStress.SensoryStressTargetManager _sensoryDistractionManager;
+        [SerializeField] private IVRAR.Group02.TargetManagement.SensoryStressTargetManager _targetManager;
         [SerializeField] private ReactionLatencyTelemetryLogger _telemetryLogger;
         [SerializeField] private PostTrialAssessmentController _assessmentController;
         [SerializeField] private MainMenuController _mainMenuController;
@@ -38,7 +39,8 @@ namespace IVRAR.Group02.Core
             // Auto-resolve references if not explicitly assigned
             if (_environmentController == null) _environmentController = FindObjectOfType<LowVisibilityEnvironmentController>();
             if (_sensoryStressManager == null) _sensoryStressManager = FindObjectOfType<SensoryStressManager>();
-            if (_targetManager == null) _targetManager = FindObjectOfType<SensoryStressTargetManager>();
+            if (_sensoryDistractionManager == null) _sensoryDistractionManager = FindObjectOfType<IVRAR.Group02.SensoryStress.SensoryStressTargetManager>();
+            if (_targetManager == null) _targetManager = FindObjectOfType<IVRAR.Group02.TargetManagement.SensoryStressTargetManager>();
             if (_telemetryLogger == null) _telemetryLogger = FindObjectOfType<ReactionLatencyTelemetryLogger>();
             if (_assessmentController == null) _assessmentController = FindObjectOfType<PostTrialAssessmentController>();
             if (_mainMenuController == null) _mainMenuController = FindObjectOfType<MainMenuController>();
@@ -98,6 +100,11 @@ namespace IVRAR.Group02.Core
         {
             SetState(SimulationState.TargetPresented);
 
+            if (_sensoryDistractionManager != null)
+            {
+                _sensoryDistractionManager.ScheduleDistractionForTrial("T" + trialIndex, Vector3.forward * distance);
+            }
+
             if (_hudController != null && _activeConfig != null)
                 _hudController.UpdateProgress(trialIndex, _activeConfig.totalTrialsInBlock);
         }
@@ -134,6 +141,9 @@ namespace IVRAR.Group02.Core
             if (_environmentController != null)
                 _environmentController.RestoreBaselineEnvironment();
 
+            if (_sensoryDistractionManager != null)
+                _sensoryDistractionManager.StopAllDistractions();
+
             // Return to main menu
             if (_mainMenuController != null)
                 _mainMenuController.ShowMainMenu();
@@ -145,6 +155,7 @@ namespace IVRAR.Group02.Core
         {
             if (_targetManager != null) _targetManager.StopTrialSequence();
             if (_sensoryStressManager != null) _sensoryStressManager.StopAllStressors();
+            if (_sensoryDistractionManager != null) _sensoryDistractionManager.StopAllDistractions();
             if (_environmentController != null) _environmentController.RestoreBaselineEnvironment();
             if (_mainMenuController != null) _mainMenuController.ShowMainMenu();
 

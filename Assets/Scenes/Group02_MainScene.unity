@@ -702,6 +702,7 @@ GameObject:
   - component: {fileID: 1010000016}
   - component: {fileID: 1010000017}
   - component: {fileID: 1010000018}
+  - component: {fileID: 1010000019}
   m_Layer: 0
   m_Name: SimulationSystemRoot
   m_TagString: Untagged
@@ -741,6 +742,7 @@ MonoBehaviour:
   _activeConfig: {fileID: 11400000, guid: 178f268e9093425fb88cbc1bf9eb2a67, type: 2}
   _environmentController: {fileID: 1010000004}
   _sensoryStressManager: {fileID: 1010000005}
+  _sensoryDistractionManager: {fileID: 1010000019}
   _targetManager: {fileID: 1010000006}
   _telemetryLogger: {fileID: 1010000007}
   _assessmentController: {fileID: 0}
@@ -1683,4 +1685,34 @@ MonoBehaviour:
   _isPhysicallyCalibrated: 0
   _calibrationStatus: Uncalibrated Simulated Illumination Target
   _enableKeyboardShortcuts: 1
+--- !u!114 &1010000019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1000000a0004000b000000000000001, type: 3}
+  m_Name: 
+  _activeCondition: 3
+  _visualMode: 0
+  _audioGain: 0.25
+  _absoluteAudioSafetyLimit: 0.4
+  _visualIntensity: 0.2
+  _visualFrequencyHz: 1.2
+  _minOnsetDelaySec: 0.3
+  _maxOnsetDelaySec: 1.2
+  _eventDurationSec: 0.5
+  _useDeterministicSeed: 1
+  _randomSeed: 42
+  _acousticController: {fileID: 910000004}
+  _strobeController: {fileID: 810000004}
+  _peripheralGlareLight: {fileID: 0}
+  _telemetryLogger: {fileID: 1010000007}
+  _exportDirectory: telemetry
+  _logFileName: sensory_distraction_event_log.csv
+  _safetyOverrideKey: 290
+
 
