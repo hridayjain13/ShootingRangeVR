@@ -196,6 +196,161 @@ def _approx_erfinv(x: float) -> float:
     return sign * math.sqrt(math.sqrt(inner) - term1)
 
 
+def generate_synthetic_human_factors_dataset(output_path: Path, num_participants: int = 4, seed: int = 42):
+    """
+    Generates synthetic human factors assessment data (NASA-TLX, Kennedy SSQ, SAGAT)
+    for offline testing of telemetry/analyze_human_factors.py.
+    """
+    random.seed(seed)
+
+    header_notice = [
+        "# NOTICE: SYNTHETIC TEST FIXTURE FOR SOFTWARE VERIFICATION ONLY.",
+        "# DO NOT USE AS EMPIRICAL PARTICIPANT RESULTS.",
+        "# PROVENANCE: SYNTHETIC / GENERATED VIA generate_synthetic_test_data.py",
+        f"# GENERATION_TIMESTAMP_UTC: {datetime.now(timezone.utc).isoformat()}",
+        f"# RANDOM_SEED: {seed}"
+    ]
+
+    # Universal schema accommodating TLX, SSQ, and SAGAT records
+    columns = [
+        "TimestampUtc", "ParticipantID", "SessionID", "Condition", "TrialID",
+        "Instrument", "Timing", "CompletionStatus",
+        # NASA-TLX columns
+        "MentalDemand", "PhysicalDemand", "TemporalDemand", "Performance", "Effort", "Frustration", "RawTlxMean",
+        # Kennedy SSQ columns
+        "GeneralDiscomfort", "Fatigue", "Headache", "EyeStrain", "DifficultyFocusing",
+        "SalivationIncreasing", "Sweating", "Nausea", "DifficultyConcentrating",
+        "FullnessOfHead", "BlurredVision", "DizzinessEyesOpen", "DizzinessEyesClosed",
+        "Vertigo", "StomachAwareness", "Burping",
+        "NauseaScore", "OculomotorScore", "DisorientationScore", "TotalSeverityScore",
+        # SAGAT columns
+        "TotalProbes", "TotalCorrect", "OverallSaScorePct",
+        "L1Correct", "L1Total", "L1ScorePct",
+        "L2Correct", "L2Total", "L2ScorePct",
+        "L3Correct", "L3Total", "L3ScorePct"
+    ]
+
+    lines = list(header_notice)
+    lines.append(",".join(columns))
+
+    conditions = [
+        ("Baseline_Daylight", 28.0, 10.0, 92.0),
+        ("LowVisibility_Night", 48.0, 15.0, 80.0),
+        ("SensoryDistraction_Daylight", 58.0, 18.0, 75.0),
+        ("Combined_LowVis_SensoryStress", 72.0, 20.0, 62.0)
+    ]
+
+    for p_idx in range(1, num_participants + 1):
+        p_code = f"P{p_idx:02d}_SYNTHETIC"
+        session_id = "S01_TEST"
+        now_utc = datetime.now(timezone.utc).isoformat()
+
+        # 1. Pre-Session Kennedy SSQ (Baseline)
+        pre_symptoms = [0] * 16
+        # Slight baseline tiredness or discomfort in a few participants
+        if random.random() < 0.4:
+            pre_symptoms[0] = 1 # Discomfort
+        if random.random() < 0.5:
+            pre_symptoms[1] = 1 # Fatigue
+
+        n_raw = pre_symptoms[0] + pre_symptoms[5] + pre_symptoms[6] + pre_symptoms[7] + pre_symptoms[8] + pre_symptoms[14] + pre_symptoms[15]
+        o_raw = pre_symptoms[0] + pre_symptoms[1] + pre_symptoms[2] + pre_symptoms[3] + pre_symptoms[4] + pre_symptoms[8] + pre_symptoms[10]
+        d_raw = pre_symptoms[4] + pre_symptoms[7] + pre_symptoms[9] + pre_symptoms[10] + pre_symptoms[11] + pre_symptoms[12] + pre_symptoms[13]
+
+        pre_n_score = n_raw * 9.54
+        pre_o_score = o_raw * 7.58
+        pre_d_score = d_raw * 13.92
+        pre_ts_score = (n_raw + o_raw + d_raw) * 3.74
+
+        row_pre_ssq = [
+            now_utc, p_code, session_id, "Baseline_Pre", "PRE-01",
+            "KennedySSQ", "PreSession", "Completed",
+            "-1", "-1", "-1", "-1", "-1", "-1", "-1"
+        ] + [str(s) for s in pre_symptoms] + [
+            f"{pre_n_score:.2f}", f"{pre_o_score:.2f}", f"{pre_d_score:.2f}", f"{pre_ts_score:.2f}",
+            "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"
+        ]
+        lines.append(",".join(row_pre_ssq))
+
+        # 2. Block-level NASA-TLX and SAGAT freezes across conditions
+        for cond_idx, (cond_name, base_tlx, tlx_sd, sa_base) in enumerate(conditions):
+            # NASA-TLX
+            m = max(5.0, min(95.0, random.gauss(base_tlx * 1.05, tlx_sd)))
+            p = max(5.0, min(95.0, random.gauss(base_tlx * 0.85, tlx_sd)))
+            t = max(5.0, min(95.0, random.gauss(base_tlx * 1.10, tlx_sd)))
+            perf = max(5.0, min(95.0, random.gauss(base_tlx * 0.90, tlx_sd)))
+            eff = max(5.0, min(95.0, random.gauss(base_tlx * 1.08, tlx_sd)))
+            fru = max(5.0, min(95.0, random.gauss(base_tlx * 0.95, tlx_sd)))
+            rtlx_mean = (m + p + t + perf + eff + fru) / 6.0
+
+            row_tlx = [
+                now_utc, p_code, session_id, cond_name, f"BLOCK-TLX-{cond_idx+1:02d}",
+                "NasaTlx", "PostBlock", "Completed",
+                f"{m:.1f}", f"{p:.1f}", f"{t:.1f}", f"{perf:.1f}", f"{eff:.1f}", f"{fru:.1f}", f"{rtlx_mean:.2f}"
+            ] + ["-1"] * 20 + [
+                "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"
+            ]
+            lines.append(",".join(row_tlx))
+
+            # SAGAT Freeze
+            l1_tot, l2_tot, l3_tot = 3, 2, 1
+            tot_probes = l1_tot + l2_tot + l3_tot
+            p_sa = max(0.40, min(0.98, sa_base / 100.0 + random.uniform(-0.08, 0.08)))
+            l1_corr = sum(1 for _ in range(l1_tot) if random.random() < p_sa)
+            l2_corr = sum(1 for _ in range(l2_tot) if random.random() < p_sa)
+            l3_corr = sum(1 for _ in range(l3_tot) if random.random() < p_sa)
+            tot_corr = l1_corr + l2_corr + l3_corr
+
+            ov_pct = (tot_corr / tot_probes) * 100.0
+            l1_pct = (l1_corr / l1_tot) * 100.0
+            l2_pct = (l2_corr / l2_tot) * 100.0
+            l3_pct = (l3_corr / l3_tot) * 100.0
+
+            row_sagat = [
+                now_utc, p_code, session_id, cond_name, f"FREEZE-{cond_idx+1:02d}",
+                "Sagat", "DuringFreeze", "Completed",
+                "-1", "-1", "-1", "-1", "-1", "-1", "-1"
+            ] + ["-1"] * 20 + [
+                str(tot_probes), str(tot_corr), f"{ov_pct:.1f}",
+                str(l1_corr), str(l1_tot), f"{l1_pct:.1f}",
+                str(l2_corr), str(l2_tot), f"{l2_pct:.1f}",
+                str(l3_corr), str(l3_tot), f"{l3_pct:.1f}"
+            ]
+            lines.append(",".join(row_sagat))
+
+        # 3. Post-Session Kennedy SSQ
+        post_symptoms = list(pre_symptoms)
+        # Moderate simulator sickness elevation in eye strain, slight nausea, sweating
+        if random.random() < 0.6: post_symptoms[3] = min(3, post_symptoms[3] + 1) # Eye strain
+        if random.random() < 0.5: post_symptoms[4] = min(3, post_symptoms[4] + 1) # Focusing
+        if random.random() < 0.35: post_symptoms[6] = min(3, post_symptoms[6] + 1) # Sweating
+        if random.random() < 0.3: post_symptoms[7] = min(3, post_symptoms[7] + 1) # Nausea
+        if random.random() < 0.4: post_symptoms[10] = min(3, post_symptoms[10] + 1) # Blurred vision
+
+        post_n_raw = post_symptoms[0] + post_symptoms[5] + post_symptoms[6] + post_symptoms[7] + post_symptoms[8] + post_symptoms[14] + post_symptoms[15]
+        post_o_raw = post_symptoms[0] + post_symptoms[1] + post_symptoms[2] + post_symptoms[3] + post_symptoms[4] + post_symptoms[8] + post_symptoms[10]
+        post_d_raw = post_symptoms[4] + post_symptoms[7] + post_symptoms[9] + post_symptoms[10] + post_symptoms[11] + post_symptoms[12] + post_symptoms[13]
+
+        post_n_score = post_n_raw * 9.54
+        post_o_score = post_o_raw * 7.58
+        post_d_score = post_d_raw * 13.92
+        post_ts_score = (post_n_raw + post_o_raw + post_d_raw) * 3.74
+
+        row_post_ssq = [
+            now_utc, p_code, session_id, "PostSession_Summary", "POST-01",
+            "KennedySSQ", "PostSession", "Completed",
+            "-1", "-1", "-1", "-1", "-1", "-1", "-1"
+        ] + [str(s) for s in post_symptoms] + [
+            f"{post_n_score:.2f}", f"{post_o_score:.2f}", f"{post_d_score:.2f}", f"{post_ts_score:.2f}",
+            "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1", "-1"
+        ]
+        lines.append(",".join(row_post_ssq))
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"[Synthetic Generator] Generated synthetic human factors assessments at: {output_path.resolve()}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Synthetic Test-Data Generator for Development Only")
     parser.add_argument("--outdir", "-o", type=Path, default=Path("telemetry"),
@@ -208,6 +363,7 @@ def main():
 
     trial_path = args.outdir / "SYNTHETIC_TEST_reaction_latency_trial_log.csv"
     cont_path = args.outdir / "SYNTHETIC_TEST_continuous_telemetry_90hz.csv"
+    hf_path = args.outdir / "SYNTHETIC_TEST_human_factors_assessments.csv"
 
     print("=" * 68)
     print("      IVRAR GROUP 02: SYNTHETIC TEST DATA GENERATOR")
@@ -216,7 +372,9 @@ def main():
 
     generate_synthetic_trial_dataset(trial_path, num_participants=args.participants, seed=args.seed)
     generate_synthetic_continuous_telemetry(cont_path, num_samples=600, seed=args.seed)
+    generate_synthetic_human_factors_dataset(hf_path, num_participants=args.participants, seed=args.seed)
 
 
 if __name__ == "__main__":
     main()
+
