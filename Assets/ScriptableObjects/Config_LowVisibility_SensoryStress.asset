@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90aecebb030143078d95c0f823c79d7d, type: 3}
+  m_Name: Config_LowVisibility_SensoryStress
+  configurationName: Low-Visibility Sensory Stress
+  condition: 2
+  description: Mesopic nighttime low visibility (0.05-0.15 lux) with peripheral strobe cues (6Hz) and spatialized acoustic gunshot/alarm stressors.
+  ambientLux: 0.12
+  fogExtinctionPerMeter: 0.045
+  directionalIntensity: 0.08
+  flashlightSpotAngle: 35
+  flashlightRange: 30
+  flashlightIntensity: 1.6
+  strobeFrequencyHz: 6
+  maxStrobePulses: 4
+  strobeIntensity: 0.2
+  maxGunshotCueGain: 0.75
+  maxAlarmCueGain: 0.6
+  acousticStartleProbability: 0.4
+  hostileProbability: 0.5
+  meanInterTargetIntervalSeconds: 3
+  exposureDurationSeconds: 2.5
+  targetMovementSpeed: 1.2
+  totalTrialsInBlock: 20
+  defaultExportDirectory: telemetry
+  trialLogFileName: reaction_latency_trial_log.csv
+  assessmentLogFileName: post_trial_assessments.csv
+  headKinematicsSampleRateHz: 90
+  headJitterWindowSize: 90

@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90aecebb030143078d95c0f823c79d7d, type: 3}
+  m_Name: Config_DefaultResearch
+  configurationName: Standard Defensive Research
+  condition: 2
+  description: Standard experimental block with balanced target presentations and controlled mesopic stress envelope.
+  ambientLux: 0.15
+  fogExtinctionPerMeter: 0.04
+  directionalIntensity: 0.10
+  flashlightSpotAngle: 40
+  flashlightRange: 35
+  flashlightIntensity: 1.8
+  strobeFrequencyHz: 5
+  maxStrobePulses: 3
+  strobeIntensity: 0.18
+  maxGunshotCueGain: 0.70
+  maxAlarmCueGain: 0.55
+  acousticStartleProbability: 0.35
+  hostileProbability: 0.5
+  meanInterTargetIntervalSeconds: 3.5
+  exposureDurationSeconds: 2.5
+  targetMovementSpeed: 1.2
+  totalTrialsInBlock: 20
+  defaultExportDirectory: telemetry
+  trialLogFileName: reaction_latency_trial_log.csv
+  assessmentLogFileName: post_trial_assessments.csv
+  headKinematicsSampleRateHz: 90
+  headJitterWindowSize: 90

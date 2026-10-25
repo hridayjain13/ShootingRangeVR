@@ -1,0 +1,118 @@
+{
+  "group_id": "IVRAR_GROUP_02",
+  "folder_name": "Group_02_Ranish_Hriday_Vedika_Medha",
+  "domain": "Immersive VR Sensory-Stress Defensive Security Training under Low Visibility",
+  "authorized_title": "How can an immersive VR sensory-stress simulation improve target prioritization and reaction latency for defensive security trainees under simulated low-visibility nighttime conditions?",
+  "members": [
+    {
+      "roll_no": "N024",
+      "sap_id": "70472400145",
+      "name": "Ranish Devadiga",
+      "github_username": "Ranish15",
+      "degree_programme": "MBA (Tech) (Computer)",
+      "role": "Lead XR Systems Architect",
+      "assigned_branch": "feat/n024-xr-systems-architect",
+      "viva_focus": "Unity OpenXR nighttime mesopic rendering, volumetric low-light fog shaders, dynamic flashlight cone inverse-square falloff, peripheral strobe startle cues, and 6-DoF defensive weapon rig."
+    },
+    {
+      "roll_no": "N042",
+      "sap_id": "70472400224",
+      "name": "Hriday Jain",
+      "github_username": "hridayjain13",
+      "degree_programme": "MBA (Tech) (Computer)",
+      "role": "Human Factors & Usability Engineer",
+      "assigned_branch": "feat/n042-human-factors-usabil",
+      "viva_focus": "Multi-dimensional NASA-TLX cognitive workload assessment, Situational Awareness Global Assessment Technique (SAGAT), Kennedy SSQ cybersickness monitoring, and stress inoculation training (SIT) efficacy."
+    },
+    {
+      "roll_no": "N047",
+      "sap_id": "70472400031",
+      "name": "Vedika Kaki",
+      "github_username": "vedikakaki",
+      "degree_programme": "MBA (Tech) (Computer)",
+      "role": "Spatial Telemetry & Data Lead",
+      "assigned_branch": "feat/n047-spatial-telemetry-da",
+      "viva_focus": "Signal Detection Theory (SDT) sensitivity index (d') and decision criterion (beta), shoot/don't-shoot millisecond reaction latency logging, false alarm error rate reduction, and paired t-test hypothesis testing."
+    },
+    {
+      "roll_no": "N062",
+      "sap_id": "70472400154",
+      "name": "Medha Mishra",
+      "github_username": "medhamishra54",
+      "degree_programme": "MBA (Tech) (Computer)",
+      "role": "Techno-Managerial Product Manager",
+      "assigned_branch": "feat/n062-technoeconomic-produ",
+      "viva_focus": "Defensive training operational economics, live-fire ammunition consumption substitution (350 rounds/trainee), physical shoot-house facility rental replacement, operational cost parity (kappa = 0.042), and capital payback horizon (10.9 months)."
+    }
+  ],
+  "foundational_papers": [
+    {
+      "id": 1,
+      "type": "seminal",
+      "authors": "Oudejans",
+      "year": 2008,
+      "title": "Reality-based practice under pressure improves handgun shooting performance of police officers",
+      "venue": "Ergonomics",
+      "doi": "https://doi.org/10.1080/00140130701577435",
+      "lead": "Vedika Kaki (N047) & Medha Mishra (N062)"
+    },
+    {
+      "id": 2,
+      "type": "seminal",
+      "authors": "Stanislaw & Todorov",
+      "year": 1999,
+      "title": "Calculation of signal detection theory measures",
+      "venue": "Behavior Research Methods, Instruments, & Computers",
+      "doi": "https://doi.org/10.3758/BF03207704",
+      "lead": "Vedika Kaki (N047)"
+    },
+    {
+      "id": 3,
+      "type": "recent",
+      "authors": "Li et al.",
+      "year": 2022,
+      "title": "A Self-Powered Triboelectric Nanogenerator Based on Intelligent Interactive System for Police Shooting Training Monitoring and Virtual Reality Interaction",
+      "venue": "Materials",
+      "doi": "https://doi.org/10.3390/ma15186228",
+      "lead": "Ranish Devadiga (N024)"
+    },
+    {
+      "id": 4,
+      "type": "recent",
+      "authors": "Rutkowski et al.",
+      "year": 2024,
+      "title": "Training using a commercial immersive virtual reality system on hand–eye coordination and reaction time in students: a randomized controlled trial",
+      "venue": "Virtual Reality",
+      "doi": "https://doi.org/10.1007/s10055-023-00898-6",
+      "lead": "Hriday Jain (N042) & Vedika Kaki (N047)"
+    },
+    {
+      "id": 5,
+      "type": "recent",
+      "authors": "Chen et al.",
+      "year": 2025,
+      "title": "Application of a virtual reality-based measurement of simple reaction time in adults: a psychometric evaluation",
+      "venue": "Virtual Reality",
+      "doi": "https://doi.org/10.1007/s10055-025-01165-6",
+      "lead": "Hriday Jain (N042)"
+    },
+    {
+      "id": 6,
+      "type": "recent",
+      "authors": "Brinkmann & Lorei",
+      "year": 2026,
+      "title": "Capability of Virtual Reality for Military Stress Inoculation Training: Stress induction using heart rate considering the influence of cybersickness, interest in technology, technology anxiety and movement",
+      "venue": "Acta Psychologica",
+      "doi": "https://doi.org/10.1016/j.actpsy.2026.106338",
+      "lead": "Medha Mishra (N062) & Ranish Devadiga (N024)"
+    }
+  ],
+  "project_showcase": {
+    "platform": "LinkedIn Video",
+    "linkedin_url": "PENDING_SUBMISSION",
+    "video_poster_path": "docs/figures/video_poster.png",
+    "video_duration_target": "60-90 seconds",
+    "submission_status": "PENDING",
+    "submission_instructions": "Paste your published LinkedIn post URL into 'linkedin_url' and submit a Pull Request"
+  }
+}
