@@ -701,6 +701,7 @@ GameObject:
   - component: {fileID: 1010000015}
   - component: {fileID: 1010000016}
   - component: {fileID: 1010000017}
+  - component: {fileID: 1010000018}
   m_Layer: 0
   m_Name: SimulationSystemRoot
   m_TagString: Untagged
@@ -758,6 +759,7 @@ MonoBehaviour:
   m_Name: 
   _directionalLight: {fileID: 705507994}
   _ambientFillLight: {fileID: 0}
+  _environmentManager: {fileID: 1010000018}
 --- !u!114 &1010000005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1662,4 +1664,23 @@ MonoBehaviour:
   m_Name: 
   _viewingDistanceMeters: 2
   _eyeLevelHeightMeters: 1.5
+--- !u!114 &1010000018
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1000000a0004000b000000000000001, type: 3}
+  m_Name: 
+  _activeCondition: 2
+  _directionalLight: {fileID: 705507994}
+  _ambientFillLight: {fileID: 0}
+  _traineeFlashlight: {fileID: 0}
+  _telemetryLogger: {fileID: 1010000007}
+  _isPhysicallyCalibrated: 0
+  _calibrationStatus: Uncalibrated Simulated Illumination Target
+  _enableKeyboardShortcuts: 1
 

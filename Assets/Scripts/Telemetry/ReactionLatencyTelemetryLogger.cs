@@ -50,11 +50,21 @@ namespace IVRAR.Group02.Telemetry
         public int TotalFalseAlarms => _falseAlarms;
         public int TotalCorrectRejections => _correctRejections;
 
+        [Header("Environmental Parameters (Phase 03)")]
+        [Tooltip("Simulated illuminance target in lux.")]
+        public float simulatedLuxTarget = 0.5f;
+        [Tooltip("Active fog density extinction coefficient.")]
+        public float fogDensity = 0.065f;
+        [Tooltip("Target luminance contrast multiplier.")]
+        public float targetContrast = 0.35f;
+        [Tooltip("Ambient illumination intensity.")]
+        public float ambientIntensity = 0.06f;
+
         private void Awake()
         {
             _yawDeltas = new float[Mathf.Max(120, windowSamples)];
 
-            _trialBuffer.AppendLine("TimestampUtc,ParticipantID,SessionID,Condition,DataStatus,TrialID,TargetType,TraineeAction,LatencyMs,Hit,Miss,FalseAlarm,CorrectRejection,DistanceMeters,PresentationAngleDeg,HeadYawJitterVarianceDeg2,DPrime,BetaCriterion");
+            _trialBuffer.AppendLine("TimestampUtc,ParticipantID,SessionID,Condition,DataStatus,SimulatedLuxTarget,FogDensity,TargetContrast,AmbientIntensity,TrialID,TargetType,TraineeAction,LatencyMs,Hit,Miss,FalseAlarm,CorrectRejection,DistanceMeters,PresentationAngleDeg,HeadYawJitterVarianceDeg2,DPrime,BetaCriterion");
             _assessmentBuffer.AppendLine("TimestampUtc,ParticipantID,SessionID,TrialID,NasaTlxMental,NasaTlxPhysical,NasaTlxTemporal,NasaTlxPerformance,NasaTlxEffort,NasaTlxFrustration,RawTlxMean,SagatRecallCorrect,SagatRecallTotal");
 
             if (headTransform == null && Camera.main != null)
@@ -110,6 +120,14 @@ namespace IVRAR.Group02.Telemetry
             return sumSq / (_sampleCount - 1);
         }
 
+        public void SetEnvironmentalTelemetry(float simulatedLux, float activeFogDensity, float activeContrast, float activeAmbient)
+        {
+            simulatedLuxTarget = simulatedLux;
+            fogDensity = activeFogDensity;
+            targetContrast = activeContrast;
+            ambientIntensity = activeAmbient;
+        }
+
         public void RecordEngagementEvent(string trialId, bool isHostile, bool engaged, float latencyMs, float distance, float angle)
         {
             int isHit = (isHostile && engaged) ? 1 : 0;
@@ -130,8 +148,9 @@ namespace IVRAR.Group02.Telemetry
 
             string line = string.Format(
                 System.Globalization.CultureInfo.InvariantCulture,
-                "{0},{1},{2},{3},{4},{5},{6},{7},{8:F1},{9},{10},{11},{12},{13:F2},{14:F2},{15:F4},{16:F3},{17:F3}",
+                "{0},{1},{2},{3},{4},{5:F2},{6:F4},{7:F2},{8:F2},{9},{10},{11},{12:F1},{13},{14},{15},{16},{17:F2},{18:F2},{19:F4},{20:F3},{21:F3}",
                 nowUtc, participantCode, sessionId, conditionLabel, dataStatus,
+                simulatedLuxTarget, fogDensity, targetContrast, ambientIntensity,
                 trialId, targetTypeStr, actionStr, latencyMs,
                 isHit, isMiss, isFalseAlarm, isCorrectRejection,
                 distance, angle, _currentYawVariance,

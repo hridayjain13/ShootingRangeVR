@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90aecebb030143078d95c0f823c79d7d, type: 3}
+  m_Name: Config_ConditionA_Baseline
+  configurationName: Condition A: Baseline Visibility
+  condition: 0
+  description: Baseline high-visibility condition. Clear daylight range (5.0 lux simulated illumination target) with no atmospheric fog and 100% target contrast.
+  lowVisibilityCondition: 0
+  simulatedIlluminationTargetLux: 5.0
+  isPhysicallyCalibrated: 0
+  targetContrastMultiplier: 1.0
+  shadowStrength: 0.85
+  ambientLux: 5.0
+  fogExtinctionPerMeter: 0.001
+  directionalIntensity: 0.85
+  flashlightSpotAngle: 35
+  flashlightRange: 40
+  flashlightIntensity: 1.0
+  strobeFrequencyHz: 1
+  maxStrobePulses: 0
+  strobeIntensity: 0.05
+  maxGunshotCueGain: 0.2
+  maxAlarmCueGain: 0.2
+  acousticStartleProbability: 0.0
+  hostileProbability: 0.5
+  meanInterTargetIntervalSeconds: 3
+  exposureDurationSeconds: 2.5
+  targetMovementSpeed: 1.2
+  totalTrialsInBlock: 20
+  defaultExportDirectory: telemetry
+  trialLogFileName: reaction_latency_trial_log.csv
+  assessmentLogFileName: post_trial_assessments.csv
+  headKinematicsSampleRateHz: 90
+  headJitterWindowSize: 90

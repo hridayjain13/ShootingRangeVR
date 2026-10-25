@@ -26,8 +26,11 @@ namespace IVRAR.Group02.Environment
         private float _originalDirectionalIntensity;
         private bool _isInitialized;
 
+        [SerializeField] private LowVisibilityEnvironmentManager _environmentManager;
+
         private void Awake()
         {
+            if (_environmentManager == null) _environmentManager = GetComponent<LowVisibilityEnvironmentManager>();
             CaptureOriginalSettings();
         }
 
@@ -48,6 +51,12 @@ namespace IVRAR.Group02.Environment
         {
             if (config == null) return;
             CaptureOriginalSettings();
+
+            if (_environmentManager != null)
+            {
+                _environmentManager.ApplyConfiguration(config);
+                return;
+            }
 
             if (config.condition == ExperimentalCondition.Baseline_ClearDaylight)
             {

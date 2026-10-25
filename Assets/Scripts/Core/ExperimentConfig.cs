@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using IVRAR.Group02.Environment;
 
 namespace IVRAR.Group02.Core
 {
@@ -22,6 +23,25 @@ namespace IVRAR.Group02.Core
         public ExperimentalCondition condition = ExperimentalCondition.LowVisibility_SensoryStress;
         [TextArea(2, 4)]
         public string description = "Mesopic nighttime low visibility (0.05-0.15 lux) with peripheral strobe cues (6Hz) and spatialized acoustic gunshot/alarm stressors.";
+
+        [Header("Phase 03 Low-Visibility Experimental Condition")]
+        [Tooltip("Standardized experimental condition preset.")]
+        public LowVisibilityCondition lowVisibilityCondition = LowVisibilityCondition.ConditionC_ReducedWithFog;
+
+        [Tooltip("Simulated research illuminance target in lux (0.5 to 5.0 lux). NOTE: Unity light intensity is an uncalibrated simulation target, not a verified physical measurement at the eye.")]
+        [Range(0.5f, 5.0f)]
+        public float simulatedIlluminationTargetLux = 0.5f;
+
+        [Tooltip("True only if physical lux meter measurement has been verified at the headset lens aperture.")]
+        public bool isPhysicallyCalibrated = false;
+
+        [Tooltip("Target visual luminance contrast multiplier (0.1 = low silhouette contrast, 1.0 = baseline contrast).")]
+        [Range(0.1f, 1.0f)]
+        public float targetContrastMultiplier = 0.35f;
+
+        [Tooltip("Real-time shadow strength (0 = no shadow, 1 = full darkness shadow).")]
+        [Range(0f, 1f)]
+        public float shadowStrength = 0.35f;
 
         [Header("Low-Visibility & Optical Environment")]
         [Tooltip("Target ambient illuminance in lux (photopic/mesopic boundary is ~0.01-3.0 lux).")]

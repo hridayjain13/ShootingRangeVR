@@ -29,10 +29,12 @@ namespace IVRAR.Group02.UI
 
         [Header("Environment Subsystem Link")]
         [SerializeField] private LowVisibilityEnvironmentController _envController;
+        [SerializeField] private LowVisibilityEnvironmentManager _envManager;
 
         private void Awake()
         {
             if (_envController == null) _envController = FindObjectOfType<LowVisibilityEnvironmentController>();
+            if (_envManager == null) _envManager = FindObjectOfType<LowVisibilityEnvironmentManager>();
 
             if (_sliderFogDensity != null) _sliderFogDensity.onValueChanged.AddListener(OnFogSliderChanged);
             if (_sliderStrobeFrequency != null) _sliderStrobeFrequency.onValueChanged.AddListener(OnStrobeSliderChanged);
@@ -108,23 +110,32 @@ namespace IVRAR.Group02.UI
 
             switch (_dropdownPreset.value)
             {
-                case 0: // Heavy Fog + High Strobe
+                case 0: // Condition C: Reduced Visibility with Fog (0.5 simulated lux)
                     _activeConfig.condition = ExperimentalCondition.LowVisibility_SensoryStress;
+                    _activeConfig.lowVisibilityCondition = LowVisibilityCondition.ConditionC_ReducedWithFog;
+                    _activeConfig.simulatedIlluminationTargetLux = 0.5f;
                     _activeConfig.fogExtinctionPerMeter = 0.065f;
                     _activeConfig.strobeFrequencyHz = 6.0f;
                     _activeConfig.maxStrobePulses = 5;
+                    if (_envManager != null) _envManager.ApplyCondition(LowVisibilityCondition.ConditionC_ReducedWithFog);
                     break;
-                case 1: // Moderate Fog + Low Strobe
+                case 1: // Condition B: Reduced Nighttime Visibility (1.5 simulated lux)
                     _activeConfig.condition = ExperimentalCondition.LowVisibility_SensoryStress;
-                    _activeConfig.fogExtinctionPerMeter = 0.035f;
+                    _activeConfig.lowVisibilityCondition = LowVisibilityCondition.ConditionB_ReducedNighttime;
+                    _activeConfig.simulatedIlluminationTargetLux = 1.5f;
+                    _activeConfig.fogExtinctionPerMeter = 0.018f;
                     _activeConfig.strobeFrequencyHz = 3.0f;
                     _activeConfig.maxStrobePulses = 2;
+                    if (_envManager != null) _envManager.ApplyCondition(LowVisibilityCondition.ConditionB_ReducedNighttime);
                     break;
-                case 2: // Clear Baseline
+                case 2: // Condition A: Baseline Visibility (5.0 simulated lux)
                     _activeConfig.condition = ExperimentalCondition.Baseline_ClearDaylight;
-                    _activeConfig.fogExtinctionPerMeter = 0.0f;
+                    _activeConfig.lowVisibilityCondition = LowVisibilityCondition.ConditionA_Baseline;
+                    _activeConfig.simulatedIlluminationTargetLux = 5.0f;
+                    _activeConfig.fogExtinctionPerMeter = 0.001f;
                     _activeConfig.strobeFrequencyHz = 1.0f;
                     _activeConfig.maxStrobePulses = 0;
+                    if (_envManager != null) _envManager.ApplyCondition(LowVisibilityCondition.ConditionA_Baseline);
                     break;
             }
 

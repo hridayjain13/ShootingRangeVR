@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90aecebb030143078d95c0f823c79d7d, type: 3}
+  m_Name: Config_ConditionB_ReducedNighttime
+  configurationName: Condition B: Reduced Nighttime Visibility
+  condition: 1
+  description: Reduced nighttime visibility condition. Clear mesopic moonlight (1.5 lux simulated illumination target) with light atmospheric haze (beta = 0.018) and 65% target contrast.
+  lowVisibilityCondition: 1
+  simulatedIlluminationTargetLux: 1.5
+  isPhysicallyCalibrated: 0
+  targetContrastMultiplier: 0.65
+  shadowStrength: 0.60
+  ambientLux: 1.5
+  fogExtinctionPerMeter: 0.018
+  directionalIntensity: 0.12
+  flashlightSpotAngle: 35
+  flashlightRange: 30
+  flashlightIntensity: 1.4
+  strobeFrequencyHz: 3
+  maxStrobePulses: 2
+  strobeIntensity: 0.10
+  maxGunshotCueGain: 0.5
+  maxAlarmCueGain: 0.4
+  acousticStartleProbability: 0.25
+  hostileProbability: 0.5
+  meanInterTargetIntervalSeconds: 3
+  exposureDurationSeconds: 2.5
+  targetMovementSpeed: 1.2
+  totalTrialsInBlock: 20
+  defaultExportDirectory: telemetry
+  trialLogFileName: reaction_latency_trial_log.csv
+  assessmentLogFileName: post_trial_assessments.csv
+  headKinematicsSampleRateHz: 90
+  headJitterWindowSize: 90

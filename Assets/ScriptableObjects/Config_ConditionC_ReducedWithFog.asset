@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90aecebb030143078d95c0f823c79d7d, type: 3}
+  m_Name: Config_ConditionC_ReducedWithFog
+  configurationName: Condition C: Reduced Visibility with Fog
+  condition: 2
+  description: Deep mesopic low visibility with heavy atmospheric fog (0.5 lux simulated illumination target, beta = 0.065) and 35% target contrast. High sensory-stress visual identification challenge.
+  lowVisibilityCondition: 2
+  simulatedIlluminationTargetLux: 0.5
+  isPhysicallyCalibrated: 0
+  targetContrastMultiplier: 0.35
+  shadowStrength: 0.35
+  ambientLux: 0.5
+  fogExtinctionPerMeter: 0.065
+  directionalIntensity: 0.035
+  flashlightSpotAngle: 35
+  flashlightRange: 25
+  flashlightIntensity: 1.6
+  strobeFrequencyHz: 6
+  maxStrobePulses: 4
+  strobeIntensity: 0.20
+  maxGunshotCueGain: 0.75
+  maxAlarmCueGain: 0.60
+  acousticStartleProbability: 0.40
+  hostileProbability: 0.5
+  meanInterTargetIntervalSeconds: 3
+  exposureDurationSeconds: 2.5
+  targetMovementSpeed: 1.2
+  totalTrialsInBlock: 20
+  defaultExportDirectory: telemetry
+  trialLogFileName: reaction_latency_trial_log.csv
+  assessmentLogFileName: post_trial_assessments.csv
+  headKinematicsSampleRateHz: 90
+  headJitterWindowSize: 90
