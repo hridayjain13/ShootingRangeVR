@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Interfaces;
 using Resources;
 using Targets;
@@ -8,19 +9,26 @@ using UnityEngine.XR;
 
 namespace IVRAR.Group02.XR
 {
+    public enum WeaponType
+    {
+        Glock17 = 0,
+        AssaultRifleM4A1 = 1,
+        CombatShotgun = 2
+    }
+
     /// <summary>
-    /// Advanced First-Person Desktop Controller for the VR Shooting Range.
+    /// Advanced First-Person Desktop & VR Hybrid Controller for the Shooting Range.
     /// Features:
-    /// - Smooth WASD locomotion with sprint (LeftShift) and head-level clamping
-    /// - Smooth mouse look with pitch clamping
-    /// - Exquisite 100% visible First-Person Tactical Glock 17 viewmodel
-    /// - True Aim-Down-Sights (ADS) centering with FOV zoom (RMB) and aligned glowing fiber-optic sights
-    /// - Semi-automatic shooting (LMB) with dynamic slide blowback recoil, muzzle flash, and brass shell ejection
-    /// - Tactical Laser Sight (toggle with 'L') with real-time beam and impact dot
-    /// - Weapon-mounted Tactical Flashlight (toggle with 'F')
-    /// - Realistic gunshot, reload, slide, and empty chamber audio
-    /// - Advanced Headshot (+250) vs Body Hit (+100) detection and combo multiplier system (x1 to x5)
-    /// - Esports-grade Tactical HUD with crosshair, ammo counter, combo streak, and floating combat text
+    /// - Solid Physical Collision: Swept-capsule collision preventing player passing through solid objects, hurdles, benches, and walls
+    /// - Multi-Weapon Arsenal:
+    ///     [1] Glock 17 Tactical Pistol (17 rounds, semi-auto, laser/light, ADS fiber-optic sights)
+    ///     [2] M4A1 CQB Assault Rifle (30 rounds, full-auto 630 RPM, holographic sight, foregrip)
+    ///     [3] Remington 870 Combat Shotgun (8 shells, pump-action, 8-pellet spread cone)
+    /// - Dynamic Weapon Switching: Keys [1], [2], [3] or Mouse Scroll Wheel with smooth draw/holster animations
+    /// - Dynamic Recoil, Muzzle Flash, and Spent Brass Ejection for every weapon
+    /// - Full Sound Effects: Punchy procedural audio synthesis for all weapons, hits, and reloads
+    /// - Interactive Events: Reacts to explosive hazmat barrels, moving tactical enemies, and drill popups
+    /// - Esports-grade Tactical HUD with weapon selector dock, ammo bar, combo streaks, and floating combat text
     /// </summary>
     [DefaultExecutionOrder(-50)]
     public class DesktopFallbackController : MonoBehaviour
@@ -38,8 +46,6 @@ namespace IVRAR.Group02.XR
         [Header("Weapon Sights & Offsets")]
         [SerializeField] private float _hipFov = 60f;
         [SerializeField] private float _aimFov = 35f;
-        [SerializeField] private Vector3 _hipPosition = new Vector3(0.18f, -0.16f, 0.38f);
-        [SerializeField] private Vector3 _aimPosition = new Vector3(0.0f, -0.118f, 0.33f);
 
         [Header("Audio Clips")]
         [SerializeField] private AudioClip _bgMusicClip;
@@ -64,23 +70,32 @@ namespace IVRAR.Group02.XR
         private float _pitch;
         private bool _cursorLocked = true;
 
-        // Weapon State
+        // Weapon Arsenal State
+        private WeaponType _currentWeapon = WeaponType.Glock17;
+        private int[] _ammoCurrent = new int[] { 17, 30, 8 };
+        private readonly int[] AMMO_MAX = new int[] { 17, 30, 8 };
+        private readonly float[] FIRE_RATES = new float[] { 0.16f, 0.095f, 0.72f };
+        private readonly bool[] IS_AUTO = new bool[] { false, true, false };
+
         private bool _isAiming = false;
-        private int _ammoCurrent = 17;
-        private const int AMMO_MAX = 17;
         private bool _isReloading = false;
         private float _lastShootTime = 0f;
-        private const float SHOOT_COOLDOWN = 0.14f;
+        private float _weaponSwitchTimer = 0f;
         private Vector3 _recoilOffset = Vector3.zero;
         private Quaternion _recoilRotation = Quaternion.identity;
 
-        // Viewmodel References
-        private Transform _gunTransform;
-        private Transform _slideTransform;
+        // Viewmodel Root & Weapon Sub-models
+        private Transform _viewmodelRoot;
+        private GameObject _glockModel;
+        private GameObject _rifleModel;
+        private GameObject _shotgunModel;
+        private Transform _glockSlide;
+        private Transform _shotgunPumpSlide;
+
+        // Visual FX
         private Light _muzzleFlashLight;
         private GameObject _muzzleFlashQuad;
         private float _flashTimer = 0f;
-        private float _slideRecoilTimer = 0f;
 
         // Tactical Attachments
         private bool _laserActive = true;
@@ -89,11 +104,15 @@ namespace IVRAR.Group02.XR
         private GameObject _laserDot;
         private Light _tacticalFlashlight;
 
-        // Audio Sources
+        // Audio Sources & Procedural Clips
         private AudioSource _musicSource;
         private AudioSource _weaponAudioSource;
+        private AudioClip _rifleShotClip;
+        private AudioClip _shotgunShotClip;
+        private AudioClip _shotgunPumpClip;
+        private AudioClip _dryFireClip;
 
-        // Scoring & Advanced Combat
+        // Scoring & Combat
         private int _score = 0;
         private int _totalHits = 0;
         private int _headshots = 0;
@@ -107,6 +126,7 @@ namespace IVRAR.Group02.XR
         private string _lastHitText = "";
         private Color _lastHitColor = Color.green;
         private float _hitTextTimer = 0f;
+        private float _cameraShakeIntensity = 0f;
 
         // Weapon Sway & Walking Bobbing
         private float _bobTimer = 0f;
@@ -135,6 +155,15 @@ namespace IVRAR.Group02.XR
             EnsureCameraAndRig();
             LoadAudioClips();
             SetupAudioSources();
+
+            IVRAR.Group02.Environment.ExplosiveBarrel.OnBarrelExploded += HandleBarrelExploded;
+            IVRAR.Group02.Environment.MovingEnemyController.OnEnemyKilled += HandleEnemyKilled;
+        }
+
+        private void OnDestroy()
+        {
+            IVRAR.Group02.Environment.ExplosiveBarrel.OnBarrelExploded -= HandleBarrelExploded;
+            IVRAR.Group02.Environment.MovingEnemyController.OnEnemyKilled -= HandleEnemyKilled;
         }
 
         private void Start()
@@ -154,7 +183,7 @@ namespace IVRAR.Group02.XR
                 }
             }
 
-            BuildTacticalGlockViewmodel();
+            BuildArsenalViewmodels();
 
             if (_autoEnableIfNoHmd)
             {
@@ -188,6 +217,12 @@ namespace IVRAR.Group02.XR
             if (_magOutClip == null) _magOutClip = UnityEngine.Resources.Load<AudioClip>("Audio/glock_mag_out");
             if (_magInClip == null) _magInClip = UnityEngine.Resources.Load<AudioClip>("Audio/glock_mag_in");
             if (_slideForwardClip == null) _slideForwardClip = UnityEngine.Resources.Load<AudioClip>("Audio/glock_slide_forward");
+
+            // Generate high-impact procedural clips for rifle, shotgun, and pump
+            _rifleShotClip = GenerateRifleShotClip();
+            _shotgunShotClip = GenerateShotgunShotClip();
+            _shotgunPumpClip = GeneratePumpActionClip();
+            _dryFireClip = GenerateDryFireClip();
         }
 
         private void SetupAudioSources()
@@ -221,171 +256,139 @@ namespace IVRAR.Group02.XR
             }
         }
 
-        private void BuildTacticalGlockViewmodel()
+        #region Weapon Viewmodel Procedural Builders
+
+        private void BuildArsenalViewmodels()
         {
             if (_targetCamera == null) return;
-            if (_gunTransform != null) return;
+            if (_viewmodelRoot != null) return;
 
-            // Root viewmodel container attached to camera
-            GameObject gunRoot = new GameObject("Tactical_Glock17_Viewmodel");
-            gunRoot.transform.SetParent(_targetCamera.transform, false);
-            gunRoot.transform.localPosition = _hipPosition;
-            gunRoot.transform.localRotation = Quaternion.Euler(1.5f, -2.5f, 0f);
-            _gunTransform = gunRoot.transform;
+            GameObject root = new GameObject("Tactical_Arsenal_ViewmodelRoot");
+            root.transform.SetParent(_targetCamera.transform, false);
+            root.transform.localPosition = new Vector3(0.18f, -0.16f, 0.42f);
+            root.transform.localRotation = Quaternion.identity;
+            _viewmodelRoot = root.transform;
 
             Shader litShader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
             Shader unlitShader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
 
-            Material blackSteelMat = new Material(litShader) { color = new Color(0.12f, 0.13f, 0.14f, 1f) };
-            Material darkPolymerMat = new Material(litShader) { color = new Color(0.08f, 0.09f, 0.10f, 1f) };
-            Material silverBarrelMat = new Material(litShader) { color = new Color(0.65f, 0.68f, 0.72f, 1f) };
-            Material tritiumGreenMat = new Material(unlitShader) { color = new Color(0.2f, 1.0f, 0.35f, 1f) };
-            Material sightWhiteMat = new Material(unlitShader) { color = new Color(0.95f, 0.95f, 0.95f, 1f) };
+            Material blackSteel = new Material(litShader) { color = new Color(0.12f, 0.13f, 0.14f, 1f) };
+            Material darkPolymer = new Material(litShader) { color = new Color(0.08f, 0.09f, 0.10f, 1f) };
+            Material silverMetal = new Material(litShader) { color = new Color(0.65f, 0.68f, 0.72f, 1f) };
+            Material oliveDrab = new Material(litShader) { color = new Color(0.18f, 0.22f, 0.18f, 1f) };
+            Material tritiumGreen = new Material(unlitShader) { color = new Color(0.2f, 1.0f, 0.35f, 1f) };
+            Material holoRed = new Material(unlitShader) { color = new Color(1.0f, 0.15f, 0.15f, 1f) };
 
-            // 1. Lower Receiver Frame
+            // 1. GLOCK 17 MODEL
+            _glockModel = new GameObject("Glock17_Model");
+            _glockModel.transform.SetParent(_viewmodelRoot, false);
+            BuildGlockComponents(_glockModel.transform, blackSteel, darkPolymer, silverMetal, tritiumGreen, unlitShader);
+
+            // 2. M4A1 CQB ASSAULT RIFLE MODEL
+            _rifleModel = new GameObject("M4A1_Model");
+            _rifleModel.transform.SetParent(_viewmodelRoot, false);
+            BuildM4A1Components(_rifleModel.transform, blackSteel, darkPolymer, oliveDrab, holoRed);
+
+            // 3. REMINGTON 870 COMBAT SHOTGUN MODEL
+            _shotgunModel = new GameObject("Shotgun_Model");
+            _shotgunModel.transform.SetParent(_viewmodelRoot, false);
+            BuildShotgunComponents(_shotgunModel.transform, blackSteel, darkPolymer, silverMetal, tritiumGreen);
+
+            // 4. Shared Muzzle Flash Light & Quad
+            GameObject flashLightObj = new GameObject("MuzzleFlashLight");
+            flashLightObj.transform.SetParent(_viewmodelRoot, false);
+            flashLightObj.transform.localPosition = new Vector3(0f, 0.035f, 0.35f);
+            _muzzleFlashLight = flashLightObj.AddComponent<Light>();
+            _muzzleFlashLight.type = LightType.Point;
+            _muzzleFlashLight.range = 7f;
+            _muzzleFlashLight.intensity = 5.0f;
+            _muzzleFlashLight.color = new Color(1.0f, 0.85f, 0.45f);
+            _muzzleFlashLight.enabled = false;
+
+            _muzzleFlashQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            _muzzleFlashQuad.name = "MuzzleFlashQuad";
+            _muzzleFlashQuad.transform.SetParent(_viewmodelRoot, false);
+            _muzzleFlashQuad.transform.localPosition = new Vector3(0f, 0.035f, 0.38f);
+            _muzzleFlashQuad.transform.localScale = new Vector3(0.16f, 0.16f, 0.16f);
+            Destroy(_muzzleFlashQuad.GetComponent<Collider>());
+            _muzzleFlashQuad.GetComponent<Renderer>().material = new Material(unlitShader) { color = new Color(1f, 0.95f, 0.65f, 1f) };
+            _muzzleFlashQuad.SetActive(false);
+
+            UpdateWeaponModelVisibility();
+        }
+
+        private void BuildGlockComponents(Transform parent, Material blackSteel, Material darkPolymer, Material silverMetal, Material tritiumGreen, Shader unlitShader)
+        {
+            // Frame
             GameObject frame = GameObject.CreatePrimitive(PrimitiveType.Cube);
             frame.name = "Frame";
-            frame.transform.SetParent(_gunTransform, false);
+            frame.transform.SetParent(parent, false);
             frame.transform.localPosition = new Vector3(0f, 0.005f, 0.05f);
             frame.transform.localScale = new Vector3(0.030f, 0.024f, 0.18f);
             Destroy(frame.GetComponent<Collider>());
-            frame.GetComponent<Renderer>().material = darkPolymerMat;
+            frame.GetComponent<Renderer>().material = darkPolymer;
 
-            // 2. Ergonomic Grip with angle
+            // Grip
             GameObject grip = GameObject.CreatePrimitive(PrimitiveType.Cube);
             grip.name = "Grip";
-            grip.transform.SetParent(_gunTransform, false);
-            grip.transform.localPosition = new Vector3(0f, -0.062f, 0.005f);
-            grip.transform.localRotation = Quaternion.Euler(15f, 0f, 0f);
-            grip.transform.localScale = new Vector3(0.029f, 0.125f, 0.048f);
+            grip.transform.SetParent(parent, false);
+            grip.transform.localPosition = new Vector3(0f, -0.065f, -0.015f);
+            grip.transform.localRotation = Quaternion.Euler(18f, 0f, 0f);
+            grip.transform.localScale = new Vector3(0.028f, 0.125f, 0.046f);
             Destroy(grip.GetComponent<Collider>());
-            grip.GetComponent<Renderer>().material = darkPolymerMat;
+            grip.GetComponent<Renderer>().material = darkPolymer;
 
-            // 3. Magazine Baseplate
-            GameObject magBase = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            magBase.name = "MagBase";
-            magBase.transform.SetParent(grip.transform, false);
-            magBase.transform.localPosition = new Vector3(0f, -0.52f, 0.02f);
-            magBase.transform.localScale = new Vector3(1.1f, 0.12f, 1.15f);
-            Destroy(magBase.GetComponent<Collider>());
-            magBase.GetComponent<Renderer>().material = blackSteelMat;
+            // Slide
+            GameObject slide = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            slide.name = "Slide";
+            slide.transform.SetParent(parent, false);
+            slide.transform.localPosition = new Vector3(0f, 0.028f, 0.05f);
+            slide.transform.localScale = new Vector3(0.032f, 0.030f, 0.19f);
+            Destroy(slide.GetComponent<Collider>());
+            slide.GetComponent<Renderer>().material = blackSteel;
+            _glockSlide = slide.transform;
 
-            // 4. Trigger Guard & Trigger
-            GameObject guard = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            guard.name = "TriggerGuard";
-            guard.transform.SetParent(_gunTransform, false);
-            guard.transform.localPosition = new Vector3(0f, -0.026f, 0.065f);
-            guard.transform.localScale = new Vector3(0.016f, 0.042f, 0.046f);
-            Destroy(guard.GetComponent<Collider>());
-            guard.GetComponent<Renderer>().material = darkPolymerMat;
-
-            GameObject trigger = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            trigger.name = "Trigger";
-            trigger.transform.SetParent(_gunTransform, false);
-            trigger.transform.localPosition = new Vector3(0f, -0.022f, 0.058f);
-            trigger.transform.localRotation = Quaternion.Euler(15f, 0f, 0f);
-            trigger.transform.localScale = new Vector3(0.006f, 0.024f, 0.010f);
-            Destroy(trigger.GetComponent<Collider>());
-            trigger.GetComponent<Renderer>().material = blackSteelMat;
-
-            // 5. Polished Silver Barrel (stationary inside frame)
+            // Barrel & Sights
             GameObject barrel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             barrel.name = "Barrel";
-            barrel.transform.SetParent(_gunTransform, false);
-            barrel.transform.localPosition = new Vector3(0f, 0.028f, 0.09f);
+            barrel.transform.SetParent(slide.transform, false);
+            barrel.transform.localPosition = new Vector3(0f, -0.05f, 0.52f);
             barrel.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            barrel.transform.localScale = new Vector3(0.014f, 0.09f, 0.014f);
+            barrel.transform.localScale = new Vector3(0.38f, 0.06f, 0.38f);
             Destroy(barrel.GetComponent<Collider>());
-            barrel.GetComponent<Renderer>().material = silverBarrelMat;
+            barrel.GetComponent<Renderer>().material = silverMetal;
 
-            // 6. Slide Container (Animates backward on recoil)
-            GameObject slideRoot = new GameObject("SlideRoot");
-            slideRoot.transform.SetParent(_gunTransform, false);
-            slideRoot.transform.localPosition = Vector3.zero;
-            _slideTransform = slideRoot.transform;
+            // Tritium Front Sight
+            GameObject frontSight = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            frontSight.name = "FrontSight";
+            frontSight.transform.SetParent(slide.transform, false);
+            frontSight.transform.localPosition = new Vector3(0f, 0.58f, 0.44f);
+            frontSight.transform.localScale = new Vector3(0.12f, 0.22f, 0.08f);
+            Destroy(frontSight.GetComponent<Collider>());
+            frontSight.GetComponent<Renderer>().material = tritiumGreen;
 
-            // 6a. Main Steel Slide
-            GameObject slide = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            slide.name = "SlideBody";
-            slide.transform.SetParent(_slideTransform, false);
-            slide.transform.localPosition = new Vector3(0f, 0.028f, 0.055f);
-            slide.transform.localScale = new Vector3(0.032f, 0.034f, 0.205f);
-            Destroy(slide.GetComponent<Collider>());
-            slide.GetComponent<Renderer>().material = blackSteelMat;
-
-            // 6b. Ejection Port Cutout Accent
-            GameObject ejectPort = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            ejectPort.name = "EjectionPort";
-            ejectPort.transform.SetParent(_slideTransform, false);
-            ejectPort.transform.localPosition = new Vector3(0.012f, 0.032f, 0.038f);
-            ejectPort.transform.localScale = new Vector3(0.012f, 0.020f, 0.038f);
-            Destroy(ejectPort.GetComponent<Collider>());
-            ejectPort.GetComponent<Renderer>().material = silverBarrelMat;
-
-            // 6c. Front Sight Post with Glowing Tritium Dot
-            GameObject frontPost = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            frontPost.name = "FrontSightPost";
-            frontPost.transform.SetParent(_slideTransform, false);
-            frontPost.transform.localPosition = new Vector3(0f, 0.048f, 0.150f);
-            frontPost.transform.localScale = new Vector3(0.005f, 0.008f, 0.006f);
-            Destroy(frontPost.GetComponent<Collider>());
-            frontPost.GetComponent<Renderer>().material = blackSteelMat;
-
-            GameObject frontDot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            frontDot.name = "TritiumGreenDot";
-            frontDot.transform.SetParent(frontPost.transform, false);
-            frontDot.transform.localPosition = new Vector3(0f, 0.2f, -0.6f);
-            frontDot.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
-            Destroy(frontDot.GetComponent<Collider>());
-            frontDot.GetComponent<Renderer>().material = tritiumGreenMat;
-
-            // 6d. Rear Sight with Dual White Alignment Dots
-            GameObject rearBase = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            rearBase.name = "RearSightBase";
-            rearBase.transform.SetParent(_slideTransform, false);
-            rearBase.transform.localPosition = new Vector3(0f, 0.048f, -0.042f);
-            rearBase.transform.localScale = new Vector3(0.020f, 0.008f, 0.008f);
-            Destroy(rearBase.GetComponent<Collider>());
-            rearBase.GetComponent<Renderer>().material = blackSteelMat;
-
-            GameObject rearDotLeft = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            rearDotLeft.name = "RearDotL";
-            rearDotLeft.transform.SetParent(rearBase.transform, false);
-            rearDotLeft.transform.localPosition = new Vector3(-0.35f, 0.2f, -0.6f);
-            rearDotLeft.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
-            Destroy(rearDotLeft.GetComponent<Collider>());
-            rearDotLeft.GetComponent<Renderer>().material = sightWhiteMat;
-
-            GameObject rearDotRight = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            rearDotRight.name = "RearDotR";
-            rearDotRight.transform.SetParent(rearBase.transform, false);
-            rearDotRight.transform.localPosition = new Vector3(0.35f, 0.2f, -0.6f);
-            rearDotRight.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
-            Destroy(rearDotRight.GetComponent<Collider>());
-            rearDotRight.GetComponent<Renderer>().material = sightWhiteMat;
-
-            // 7. Tactical Rail Module (Laser + Light)
+            // Tactical Rail & Laser
             GameObject railUnit = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            railUnit.name = "UnderbarrelLaserLight";
-            railUnit.transform.SetParent(_gunTransform, false);
+            railUnit.name = "LaserLightUnit";
+            railUnit.transform.SetParent(parent, false);
             railUnit.transform.localPosition = new Vector3(0f, -0.010f, 0.115f);
             railUnit.transform.localScale = new Vector3(0.026f, 0.022f, 0.065f);
             Destroy(railUnit.GetComponent<Collider>());
-            railUnit.GetComponent<Renderer>().material = blackSteelMat;
+            railUnit.GetComponent<Renderer>().material = blackSteel;
 
-            // Tactical Flashlight Component
+            // Flashlight
             GameObject lightObj = new GameObject("TacticalFlashlight");
             lightObj.transform.SetParent(railUnit.transform, false);
             lightObj.transform.localPosition = new Vector3(0f, 0f, 0.6f);
             _tacticalFlashlight = lightObj.AddComponent<Light>();
             _tacticalFlashlight.type = LightType.Spot;
-            _tacticalFlashlight.range = 35f;
-            _tacticalFlashlight.spotAngle = 38f;
+            _tacticalFlashlight.range = 40f;
+            _tacticalFlashlight.spotAngle = 36f;
             _tacticalFlashlight.intensity = 2.8f;
             _tacticalFlashlight.color = new Color(0.96f, 0.98f, 1.0f);
             _tacticalFlashlight.enabled = _flashlightActive;
 
-            // Tactical Laser Beam & Dot
+            // Laser Beam & Dot
             _laserLine = railUnit.AddComponent<LineRenderer>();
             _laserLine.useWorldSpace = true;
             _laserLine.startWidth = 0.003f;
@@ -397,34 +400,174 @@ namespace IVRAR.Group02.XR
             _laserLine.enabled = _laserActive;
 
             _laserDot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            _laserDot.name = "LaserImpactDot";
+            _laserDot.name = "LaserDot";
             _laserDot.transform.localScale = Vector3.one * 0.035f;
             Destroy(_laserDot.GetComponent<Collider>());
             _laserDot.GetComponent<Renderer>().material = new Material(unlitShader) { color = Color.red };
             _laserDot.SetActive(_laserActive);
-
-            // 8. Muzzle Flash Point Light & Particle Quad
-            GameObject flashLightObj = new GameObject("MuzzleFlashLight");
-            flashLightObj.transform.SetParent(_gunTransform, false);
-            flashLightObj.transform.localPosition = new Vector3(0f, 0.028f, 0.22f);
-            _muzzleFlashLight = flashLightObj.AddComponent<Light>();
-            _muzzleFlashLight.type = LightType.Point;
-            _muzzleFlashLight.range = 6f;
-            _muzzleFlashLight.intensity = 4.5f;
-            _muzzleFlashLight.color = new Color(1.0f, 0.85f, 0.4f);
-            _muzzleFlashLight.enabled = false;
-
-            _muzzleFlashQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            _muzzleFlashQuad.name = "MuzzleFlashQuad";
-            _muzzleFlashQuad.transform.SetParent(_gunTransform, false);
-            _muzzleFlashQuad.transform.localPosition = new Vector3(0f, 0.028f, 0.24f);
-            _muzzleFlashQuad.transform.localScale = new Vector3(0.14f, 0.14f, 0.14f);
-            Destroy(_muzzleFlashQuad.GetComponent<Collider>());
-            _muzzleFlashQuad.GetComponent<Renderer>().material = new Material(unlitShader) { color = new Color(1f, 0.92f, 0.55f, 1f) };
-            _muzzleFlashQuad.SetActive(false);
-
-            Debug.Log("[DesktopFallbackController] First-Person Tactical Glock 17 Viewmodel built successfully.");
         }
+
+        private void BuildM4A1Components(Transform parent, Material blackSteel, Material darkPolymer, Material oliveDrab, Material holoRed)
+        {
+            // Receiver
+            GameObject receiver = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            receiver.name = "UpperLowerReceiver";
+            receiver.transform.SetParent(parent, false);
+            receiver.transform.localPosition = new Vector3(0f, 0.01f, 0.02f);
+            receiver.transform.localScale = new Vector3(0.038f, 0.065f, 0.24f);
+            Destroy(receiver.GetComponent<Collider>());
+            receiver.GetComponent<Renderer>().material = blackSteel;
+
+            // Buffer Tube & Tactical Stock
+            GameObject stock = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            stock.name = "CraneStock";
+            stock.transform.SetParent(parent, false);
+            stock.transform.localPosition = new Vector3(0f, 0.01f, -0.18f);
+            stock.transform.localScale = new Vector3(0.034f, 0.085f, 0.18f);
+            Destroy(stock.GetComponent<Collider>());
+            stock.GetComponent<Renderer>().material = darkPolymer;
+
+            // Pistol Grip
+            GameObject grip = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            grip.name = "PistolGrip";
+            grip.transform.SetParent(parent, false);
+            grip.transform.localPosition = new Vector3(0f, -0.075f, -0.04f);
+            grip.transform.localRotation = Quaternion.Euler(22f, 0f, 0f);
+            grip.transform.localScale = new Vector3(0.028f, 0.11f, 0.045f);
+            Destroy(grip.GetComponent<Collider>());
+            grip.GetComponent<Renderer>().material = darkPolymer;
+
+            // Curved 30-round STANAG Magazine
+            GameObject mag = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            mag.name = "Magazine";
+            mag.transform.SetParent(parent, false);
+            mag.transform.localPosition = new Vector3(0f, -0.09f, 0.06f);
+            mag.transform.localRotation = Quaternion.Euler(14f, 0f, 0f);
+            mag.transform.localScale = new Vector3(0.026f, 0.15f, 0.055f);
+            Destroy(mag.GetComponent<Collider>());
+            mag.GetComponent<Renderer>().material = oliveDrab;
+
+            // Handguard Quad-Rail
+            GameObject handguard = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            handguard.name = "QuadRailHandguard";
+            handguard.transform.SetParent(parent, false);
+            handguard.transform.localPosition = new Vector3(0f, 0.015f, 0.22f);
+            handguard.transform.localScale = new Vector3(0.040f, 0.045f, 0.20f);
+            Destroy(handguard.GetComponent<Collider>());
+            handguard.GetComponent<Renderer>().material = darkPolymer;
+
+            // Vertical Foregrip
+            GameObject vgrip = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            vgrip.name = "VerticalForegrip";
+            vgrip.transform.SetParent(parent, false);
+            vgrip.transform.localPosition = new Vector3(0f, -0.055f, 0.22f);
+            vgrip.transform.localScale = new Vector3(0.025f, 0.045f, 0.025f);
+            Destroy(vgrip.GetComponent<Collider>());
+            vgrip.GetComponent<Renderer>().material = blackSteel;
+
+            // Barrel & Birdcage Flash Hider
+            GameObject barrel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            barrel.name = "CarbineBarrel";
+            barrel.transform.SetParent(parent, false);
+            barrel.transform.localPosition = new Vector3(0f, 0.015f, 0.36f);
+            barrel.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            barrel.transform.localScale = new Vector3(0.018f, 0.12f, 0.018f);
+            Destroy(barrel.GetComponent<Collider>());
+            barrel.GetComponent<Renderer>().material = blackSteel;
+
+            // EOTech Holographic Optic Sight Housing
+            GameObject optic = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            optic.name = "HoloSightHousing";
+            optic.transform.SetParent(parent, false);
+            optic.transform.localPosition = new Vector3(0f, 0.068f, 0.02f);
+            optic.transform.localScale = new Vector3(0.034f, 0.038f, 0.09f);
+            Destroy(optic.GetComponent<Collider>());
+            optic.GetComponent<Renderer>().material = blackSteel;
+
+            // Glowing Holographic Red Circle Reticle
+            GameObject reticle = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            reticle.name = "HoloReticle";
+            reticle.transform.SetParent(optic.transform, false);
+            reticle.transform.localPosition = new Vector3(0f, 0.1f, -0.51f);
+            reticle.transform.localScale = new Vector3(0.55f, 0.55f, 0.55f);
+            Destroy(reticle.GetComponent<Collider>());
+            reticle.GetComponent<Renderer>().material = holoRed;
+        }
+
+        private void BuildShotgunComponents(Transform parent, Material blackSteel, Material darkPolymer, Material silverMetal, Material tritiumGreen)
+        {
+            // Receiver
+            GameObject receiver = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            receiver.name = "ShotgunReceiver";
+            receiver.transform.SetParent(parent, false);
+            receiver.transform.localPosition = new Vector3(0f, 0.01f, 0.02f);
+            receiver.transform.localScale = new Vector3(0.040f, 0.055f, 0.22f);
+            Destroy(receiver.GetComponent<Collider>());
+            receiver.GetComponent<Renderer>().material = blackSteel;
+
+            // Polymer Stock
+            GameObject stock = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            stock.name = "SyntheticStock";
+            stock.transform.SetParent(parent, false);
+            stock.transform.localPosition = new Vector3(0f, -0.02f, -0.19f);
+            stock.transform.localRotation = Quaternion.Euler(8f, 0f, 0f);
+            stock.transform.localScale = new Vector3(0.034f, 0.085f, 0.22f);
+            Destroy(stock.GetComponent<Collider>());
+            stock.GetComponent<Renderer>().material = darkPolymer;
+
+            // Main Shotgun Heavy Barrel (12 Gauge)
+            GameObject barrel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            barrel.name = "ShotgunBarrel";
+            barrel.transform.SetParent(parent, false);
+            barrel.transform.localPosition = new Vector3(0f, 0.025f, 0.32f);
+            barrel.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            barrel.transform.localScale = new Vector3(0.024f, 0.24f, 0.024f);
+            Destroy(barrel.GetComponent<Collider>());
+            barrel.GetComponent<Renderer>().material = silverMetal;
+
+            // Underbarrel Magazine Tube
+            GameObject magTube = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            magTube.name = "MagazineTube";
+            magTube.transform.SetParent(parent, false);
+            magTube.transform.localPosition = new Vector3(0f, -0.005f, 0.28f);
+            magTube.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            magTube.transform.localScale = new Vector3(0.022f, 0.20f, 0.022f);
+            Destroy(magTube.GetComponent<Collider>());
+            magTube.GetComponent<Renderer>().material = blackSteel;
+
+            // Ribbed Pump Slide Forend
+            GameObject pump = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            pump.name = "PumpSlide";
+            pump.transform.SetParent(parent, false);
+            pump.transform.localPosition = new Vector3(0f, -0.005f, 0.24f);
+            pump.transform.localScale = new Vector3(0.042f, 0.040f, 0.12f);
+            Destroy(pump.GetComponent<Collider>());
+            pump.GetComponent<Renderer>().material = darkPolymer;
+            _shotgunPumpSlide = pump.transform;
+
+            // High-Visibility Bead Sight
+            GameObject bead = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            bead.name = "FrontBeadSight";
+            bead.transform.SetParent(barrel.transform, false);
+            bead.transform.localPosition = new Vector3(0f, 0.98f, 0.6f);
+            bead.transform.localScale = new Vector3(0.35f, 0.35f, 0.35f);
+            Destroy(bead.GetComponent<Collider>());
+            bead.GetComponent<Renderer>().material = tritiumGreen;
+        }
+
+        private void UpdateWeaponModelVisibility()
+        {
+            if (_glockModel != null) _glockModel.SetActive(_currentWeapon == WeaponType.Glock17);
+            if (_rifleModel != null) _rifleModel.SetActive(_currentWeapon == WeaponType.AssaultRifleM4A1);
+            if (_shotgunModel != null) _shotgunModel.SetActive(_currentWeapon == WeaponType.CombatShotgun);
+
+            if (_laserLine != null) _laserLine.enabled = _laserActive && _currentWeapon == WeaponType.Glock17;
+            if (_laserDot != null) _laserDot.SetActive(_laserActive && _currentWeapon == WeaponType.Glock17);
+        }
+
+        #endregion
+
+        #region Input & Updates
 
         private void Update()
         {
@@ -441,6 +584,7 @@ namespace IVRAR.Group02.XR
             if (!IsDesktopModeActive) return;
 
             HandleCursorLock();
+            HandleWeaponSwitch();
             HandleMouseLook();
             HandleLocomotion();
             HandleAimingAndZoom();
@@ -448,53 +592,87 @@ namespace IVRAR.Group02.XR
             HandleTacticalAttachments();
             UpdateWeaponSwayAndRecoil();
             UpdateLaserSight();
-            UpdateTimers();
+            UpdateCombosAndEffects();
         }
 
-        public void SetDesktopMode(bool active)
+        private void HandleWeaponSwitch()
         {
-            IsDesktopModeActive = active;
-            _cursorLocked = active;
-            ApplyCursorLock(_cursorLocked);
+            if (_isReloading) return;
 
-            if (_targetCamera != null)
+            WeaponType targetWeapon = _currentWeapon;
+
+            if (Input.GetKeyDown(KeyCode.Alpha1)) targetWeapon = WeaponType.Glock17;
+            else if (Input.GetKeyDown(KeyCode.Alpha2)) targetWeapon = WeaponType.AssaultRifleM4A1;
+            else if (Input.GetKeyDown(KeyCode.Alpha3)) targetWeapon = WeaponType.CombatShotgun;
+
+            float scroll = Input.GetAxis("Mouse ScrollWheel");
+            if (scroll > 0.05f)
             {
-                _targetCamera.enabled = true;
+                targetWeapon = (WeaponType)(((int)_currentWeapon + 1) % 3);
+            }
+            else if (scroll < -0.05f)
+            {
+                targetWeapon = (WeaponType)(((int)_currentWeapon + 2) % 3);
             }
 
-            if (_gunTransform != null)
+            if (targetWeapon != _currentWeapon)
             {
-                _gunTransform.gameObject.SetActive(active);
+                StartCoroutine(SwitchWeaponCoroutine(targetWeapon));
+            }
+        }
+
+        private IEnumerator SwitchWeaponCoroutine(WeaponType newWeapon)
+        {
+            _weaponSwitchTimer = 0.25f;
+
+            // Lower weapon
+            Vector3 origPos = _viewmodelRoot != null ? _viewmodelRoot.localPosition : Vector3.zero;
+            Vector3 lowerPos = origPos + Vector3.down * 0.22f;
+
+            float t = 0f;
+            while (t < 0.12f)
+            {
+                if (_viewmodelRoot != null) _viewmodelRoot.localPosition = Vector3.Lerp(origPos, lowerPos, t / 0.12f);
+                t += Time.deltaTime;
+                yield return null;
             }
 
-            if (_laserLine != null) _laserLine.enabled = active && _laserActive;
-            if (_laserDot != null) _laserDot.SetActive(active && _laserActive);
+            _currentWeapon = newWeapon;
+            UpdateWeaponModelVisibility();
 
-            if (active && _musicSource != null && !_musicSource.isPlaying && _bgMusicClip != null)
+            // Play equip click
+            if (_slideForwardClip != null && _weaponAudioSource != null)
             {
-                _musicSource.Play();
+                _weaponAudioSource.PlayOneShot(_slideForwardClip, 0.75f);
             }
 
-            Debug.Log("[DesktopFallbackController] Desktop Mode: " + (IsDesktopModeActive ? "ENABLED" : "DISABLED"));
+            // Raise new weapon
+            t = 0f;
+            while (t < 0.14f)
+            {
+                if (_viewmodelRoot != null) _viewmodelRoot.localPosition = Vector3.Lerp(lowerPos, origPos, t / 0.14f);
+                t += Time.deltaTime;
+                yield return null;
+            }
+
+            _weaponSwitchTimer = 0f;
         }
 
         private void HandleCursorLock()
         {
-            if (Input.GetKeyDown(KeyCode.LeftAlt) || Input.GetKeyDown(KeyCode.RightAlt) || Input.GetKeyDown(KeyCode.Escape))
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
-                _cursorLocked = !_cursorLocked;
-                ApplyCursorLock(_cursorLocked);
+                ApplyCursorLock(false);
             }
-
-            if (!_cursorLocked && Input.GetMouseButtonDown(0))
+            else if (Input.GetMouseButtonDown(0) && !_cursorLocked)
             {
-                _cursorLocked = true;
                 ApplyCursorLock(true);
             }
         }
 
-        private void ApplyCursorLock(bool locked)
+        public void ApplyCursorLock(bool locked)
         {
+            _cursorLocked = locked;
             Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
             Cursor.visible = !locked;
         }
@@ -513,6 +691,11 @@ namespace IVRAR.Group02.XR
             _targetCamera.transform.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
         }
 
+        /// <summary>
+        /// Solid Locomotion with Swept-Capsule Collision Detection.
+        /// Prevents passing through solid objects, hurdles, benches, and walls.
+        /// Slides smoothly along obstacle surfaces.
+        /// </summary>
         private void HandleLocomotion()
         {
             if (_playerOrigin == null || _targetCamera == null) return;
@@ -532,11 +715,46 @@ namespace IVRAR.Group02.XR
 
                 float speed = Input.GetKey(KeyCode.LeftShift) ? _sprintSpeed : _moveSpeed;
                 Vector3 moveDir = (forward * vertical + right * horizontal).normalized;
+                float moveDist = speed * Time.unscaledDeltaTime;
 
-                Vector3 targetPos = _playerOrigin.position + moveDir * (speed * Time.unscaledDeltaTime);
-                targetPos.y = 1.6f; // Lock player standing eye height
-                _playerOrigin.position = targetPos;
+                // Swept Capsule Collision against solid environment
+                Vector3 currentPos = _playerOrigin.position;
+                Vector3 bottom = currentPos + Vector3.down * 1.35f;
+                Vector3 top = currentPos + Vector3.up * 0.15f;
+                float radius = 0.36f;
+                int layerMask = ~0;
 
+                if (Physics.CapsuleCast(bottom, top, radius, moveDir, out RaycastHit hit, moveDist + 0.04f, layerMask, QueryTriggerInteraction.Ignore))
+                {
+                    // Blocked by solid object: Move up to contact and slide along normal
+                    float allowedDist = Mathf.Max(0f, hit.distance - 0.04f);
+                    currentPos += moveDir * allowedDist;
+
+                    Vector3 slideDir = Vector3.ProjectOnPlane(moveDir, hit.normal).normalized;
+                    float remDist = moveDist - allowedDist;
+                    if (slideDir.sqrMagnitude > 0.001f && remDist > 0.001f)
+                    {
+                        if (!Physics.CapsuleCast(currentPos + Vector3.down * 1.35f, currentPos + Vector3.up * 0.15f, radius, slideDir, out RaycastHit slideHit, remDist + 0.04f, layerMask, QueryTriggerInteraction.Ignore))
+                        {
+                            currentPos += slideDir * remDist;
+                        }
+                        else
+                        {
+                            currentPos += slideDir * Mathf.Max(0f, slideHit.distance - 0.04f);
+                        }
+                    }
+                }
+                else
+                {
+                    currentPos += moveDir * moveDist;
+                }
+
+                // Range Bounds Clamping
+                currentPos.x = Mathf.Clamp(currentPos.x, -14.2f, 14.2f);
+                currentPos.z = Mathf.Clamp(currentPos.z, -3.5f, 31.0f);
+                currentPos.y = 1.6f;
+
+                _playerOrigin.position = currentPos;
                 _bobTimer += Time.deltaTime * (speed * 1.8f);
             }
             else
@@ -551,46 +769,59 @@ namespace IVRAR.Group02.XR
 
             _isAiming = Input.GetMouseButton(1);
 
-            float targetFov = _isAiming ? _aimFov : _hipFov;
+            float targetFov;
+            switch (_currentWeapon)
+            {
+                case WeaponType.AssaultRifleM4A1: targetFov = _isAiming ? 46f : _hipFov; break;
+                case WeaponType.CombatShotgun: targetFov = _isAiming ? 54f : _hipFov; break;
+                default: targetFov = _isAiming ? _aimFov : _hipFov; break;
+            }
+
             _targetCamera.fieldOfView = Mathf.Lerp(_targetCamera.fieldOfView, targetFov, Time.deltaTime * 14f);
         }
 
         private void HandleShootingAndReload()
         {
-            if (Input.GetKeyDown(KeyCode.R) && !_isReloading && _ammoCurrent < AMMO_MAX)
+            int widx = (int)_currentWeapon;
+
+            if (Input.GetKeyDown(KeyCode.R) && !_isReloading && _ammoCurrent[widx] < AMMO_MAX[widx])
             {
                 StartCoroutine(ReloadCoroutine());
             }
 
-            if (Input.GetMouseButtonDown(0) && _cursorLocked)
+            bool fireInput = IS_AUTO[widx] ? Input.GetMouseButton(0) : Input.GetMouseButtonDown(0);
+
+            if (fireInput && _cursorLocked && _weaponSwitchTimer <= 0f)
             {
                 if (_isReloading) return;
 
-                if (_ammoCurrent <= 0)
+                if (_ammoCurrent[widx] <= 0)
                 {
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        if (_dryFireClip != null && _weaponAudioSource != null)
+                            _weaponAudioSource.PlayOneShot(_dryFireClip, 0.7f);
+                    }
                     StartCoroutine(ReloadCoroutine());
                     return;
                 }
 
-                if (Time.time - _lastShootTime >= SHOOT_COOLDOWN)
+                if (Time.time - _lastShootTime >= FIRE_RATES[widx])
                 {
-                    Shoot();
+                    ExecuteWeaponShot();
                 }
             }
         }
 
-        private void Shoot()
+        private void ExecuteWeaponShot()
         {
+            int widx = (int)_currentWeapon;
             _lastShootTime = Time.time;
-            _ammoCurrent--;
+            _ammoCurrent[widx]--;
             _shotsFired++;
 
-            // 1. Play Shot Sound
-            if (_shotAudioClip != null && _weaponAudioSource != null)
-            {
-                _weaponAudioSource.pitch = UnityEngine.Random.Range(0.96f, 1.04f);
-                _weaponAudioSource.PlayOneShot(_shotAudioClip, 0.95f);
-            }
+            // 1. Play Weapon Audio
+            PlayWeaponShotAudio();
 
             // 2. Muzzle Flash
             if (_muzzleFlashLight != null) _muzzleFlashLight.enabled = true;
@@ -601,53 +832,143 @@ namespace IVRAR.Group02.XR
             }
             _flashTimer = 0.05f;
 
-            // 3. Slide Recoil Blowback
-            _slideRecoilTimer = 0.07f;
-            _recoilOffset = new Vector3(0f, 0.024f, -0.065f);
-            _recoilRotation = Quaternion.Euler(-4.5f, UnityEngine.Random.Range(-0.6f, 0.6f), 0f);
+            // 3. Dynamic Weapon Recoil Kick
+            ApplyWeaponRecoil();
 
-            // 4. Eject Brass Shell Casing
+            // 4. Spent Casing Ejection
             EjectShellCasing();
 
-            // 5. Raycast Hit Detection
-            Ray ray = new Ray(_targetCamera.transform.position, _targetCamera.transform.forward);
-            if (Physics.Raycast(ray, out RaycastHit hit, 200f))
+            // 5. Weapon Ballistic Raycasts
+            if (_currentWeapon == WeaponType.CombatShotgun)
             {
-                ProcessHit(hit);
+                // Shotgun fires 8 buckshot pellets in spread cone
+                for (int i = 0; i < 8; i++)
+                {
+                    Vector2 spread = UnityEngine.Random.insideUnitCircle * 0.042f;
+                    Vector3 pelletDir = (_targetCamera.transform.forward + _targetCamera.transform.right * spread.x + _targetCamera.transform.up * spread.y).normalized;
+                    Ray ray = new Ray(_targetCamera.transform.position, pelletDir);
+                    if (Physics.Raycast(ray, out RaycastHit hit, 150f))
+                    {
+                        ProcessHit(hit, 25f);
+                    }
+                }
+                // Racking pump action
+                StartCoroutine(ShotgunPumpCoroutine());
+            }
+            else
+            {
+                // Single bullet (Pistol or Rifle)
+                float spreadAmount = _currentWeapon == WeaponType.AssaultRifleM4A1 ? (_isAiming ? 0.006f : 0.016f) : (_isAiming ? 0.001f : 0.005f);
+                Vector2 spread = UnityEngine.Random.insideUnitCircle * spreadAmount;
+                Vector3 shootDir = (_targetCamera.transform.forward + _targetCamera.transform.right * spread.x + _targetCamera.transform.up * spread.y).normalized;
+                Ray ray = new Ray(_targetCamera.transform.position, shootDir);
+                if (Physics.Raycast(ray, out RaycastHit hit, 200f))
+                {
+                    float dmg = _currentWeapon == WeaponType.AssaultRifleM4A1 ? 40f : 45f;
+                    ProcessHit(hit, dmg);
+                }
             }
 
             if (_responseMechanism != null) _responseMechanism.ProcessResponse(null);
             else if (_rayPointer != null) _rayPointer.TriggerClick();
         }
 
+        private void PlayWeaponShotAudio()
+        {
+            if (_weaponAudioSource == null) return;
+
+            switch (_currentWeapon)
+            {
+                case WeaponType.AssaultRifleM4A1:
+                    _weaponAudioSource.pitch = UnityEngine.Random.Range(0.97f, 1.03f);
+                    _weaponAudioSource.PlayOneShot(_rifleShotClip, 0.95f);
+                    break;
+
+                case WeaponType.CombatShotgun:
+                    _weaponAudioSource.pitch = UnityEngine.Random.Range(0.95f, 1.02f);
+                    _weaponAudioSource.PlayOneShot(_shotgunShotClip, 1.0f);
+                    break;
+
+                default: // Glock 17
+                    if (_shotAudioClip != null)
+                    {
+                        _weaponAudioSource.pitch = UnityEngine.Random.Range(0.96f, 1.04f);
+                        _weaponAudioSource.PlayOneShot(_shotAudioClip, 0.95f);
+                    }
+                    break;
+            }
+        }
+
+        private void ApplyWeaponRecoil()
+        {
+            switch (_currentWeapon)
+            {
+                case WeaponType.AssaultRifleM4A1:
+                    _recoilOffset = new Vector3(0f, 0.018f, -0.048f);
+                    _recoilRotation = Quaternion.Euler(-3.5f, UnityEngine.Random.Range(-0.8f, 0.8f), 0f);
+                    break;
+
+                case WeaponType.CombatShotgun:
+                    _recoilOffset = new Vector3(0f, 0.055f, -0.11f);
+                    _recoilRotation = Quaternion.Euler(-8.0f, UnityEngine.Random.Range(-1.2f, 1.2f), 0f);
+                    _cameraShakeIntensity = 0.22f;
+                    break;
+
+                default: // Glock 17
+                    _recoilOffset = new Vector3(0f, 0.024f, -0.065f);
+                    _recoilRotation = Quaternion.Euler(-4.5f, UnityEngine.Random.Range(-0.6f, 0.6f), 0f);
+                    break;
+            }
+        }
+
+        private IEnumerator ShotgunPumpCoroutine()
+        {
+            yield return new WaitForSeconds(0.24f);
+
+            // Slide back
+            if (_shotgunPumpSlide != null)
+                _shotgunPumpSlide.localPosition = new Vector3(0f, -0.005f, 0.18f);
+
+            if (_shotgunPumpClip != null && _weaponAudioSource != null)
+                _weaponAudioSource.PlayOneShot(_shotgunPumpClip, 0.85f);
+
+            yield return new WaitForSeconds(0.22f);
+
+            // Slide forward
+            if (_shotgunPumpSlide != null)
+                _shotgunPumpSlide.localPosition = new Vector3(0f, -0.005f, 0.24f);
+        }
+
         private void EjectShellCasing()
         {
-            if (_gunTransform == null) return;
+            if (_viewmodelRoot == null) return;
 
             GameObject casing = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             casing.name = "SpentBrass_Casing";
-            casing.transform.position = _gunTransform.position + _gunTransform.right * 0.04f + _gunTransform.up * 0.02f;
-            casing.transform.localScale = new Vector3(0.009f, 0.015f, 0.009f);
+            casing.transform.position = _viewmodelRoot.position + _viewmodelRoot.right * 0.04f + _viewmodelRoot.up * 0.02f;
+            float scaleY = _currentWeapon == WeaponType.CombatShotgun ? 0.028f : 0.016f;
+            float scaleR = _currentWeapon == WeaponType.CombatShotgun ? 0.014f : 0.009f;
+            casing.transform.localScale = new Vector3(scaleR, scaleY, scaleR);
             casing.transform.rotation = Quaternion.Euler(UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360));
             Destroy(casing.GetComponent<Collider>());
 
             Shader lit = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
             if (lit != null)
             {
-                Material brass = new Material(lit) { color = new Color(0.85f, 0.70f, 0.25f, 1f) };
-                casing.GetComponent<Renderer>().material = brass;
+                Color casingColor = _currentWeapon == WeaponType.CombatShotgun ? new Color(0.85f, 0.15f, 0.12f, 1f) : new Color(0.85f, 0.70f, 0.25f, 1f);
+                casing.GetComponent<Renderer>().material = new Material(lit) { color = casingColor };
             }
 
             Rigidbody rb = casing.AddComponent<Rigidbody>();
             rb.mass = 0.01f;
-            Vector3 ejectDir = (_gunTransform.right * 2.5f + _gunTransform.up * 1.8f + _gunTransform.forward * 0.2f);
-            rb.linearVelocity = ejectDir + UnityEngine.Random.insideUnitSphere * 0.5f;
+            Vector3 ejectDir = (_viewmodelRoot.right * 2.8f + _viewmodelRoot.up * 1.6f + _viewmodelRoot.forward * 0.1f);
+            rb.linearVelocity = ejectDir + UnityEngine.Random.insideUnitSphere * 0.4f;
             rb.angularVelocity = UnityEngine.Random.insideUnitSphere * 25f;
 
-            Destroy(casing, 1.2f);
+            Destroy(casing, 1.4f);
         }
 
-        private void ProcessHit(RaycastHit hit)
+        private void ProcessHit(RaycastHit hit, float damage)
         {
             var hitObj = hit.transform.gameObject;
             string objName = hitObj.name.ToLower();
@@ -656,14 +977,14 @@ namespace IVRAR.Group02.XR
             bool isCivilian = (popUpCtrl != null && popUpCtrl.Classification == IVRAR.Group02.Environment.TargetClassification.CivilianFriendly) ||
                               objName.Contains("civilian") || objName.Contains("friendly");
 
-            bool isHeadshot = objName.Contains("head") || hitObj.CompareTag("Player") || hit.point.y > 1.65f;
+            bool isHeadshot = objName.Contains("head") || hit.point.y > 1.65f;
             bool isEnemy = !isCivilian && (objName.Contains("target") || objName.Contains("enemy") || objName.Contains("hostile") || objName.Contains("silhouette") || popUpCtrl != null);
 
             var damageData = new DamageData
             {
                 contactPoint = hit.point,
                 normalPoint = Quaternion.LookRotation(hit.normal),
-                force = _targetCamera.transform.forward * 45f
+                force = _targetCamera.transform.forward * (damage * 1.2f)
             };
 
             var damageable = hitObj.GetComponentInParent<IDamageable>();
@@ -680,7 +1001,6 @@ namespace IVRAR.Group02.XR
 
             if (isCivilian)
             {
-                // Friendly Fire / False Alarm Penalty
                 _score = Mathf.Max(0, _score - 150);
                 _comboMultiplier = 1;
                 _hitMarkerTimer = 0.35f;
@@ -691,17 +1011,10 @@ namespace IVRAR.Group02.XR
             else if (isEnemy || damageable != null || humanTarget != null)
             {
                 _totalHits++;
-                _hitMarkerTimer = 0.28f;
+                _hitMarkerTimer = 0.25f;
 
-                // Combo Multiplier
-                if (_comboTimer > 0f)
-                {
-                    _comboMultiplier = Mathf.Min(_comboMultiplier + 1, 5);
-                }
-                else
-                {
-                    _comboMultiplier = 1;
-                }
+                if (_comboTimer > 0f) _comboMultiplier = Mathf.Min(_comboMultiplier + 1, 5);
+                else _comboMultiplier = 1;
                 _comboTimer = COMBO_DURATION;
 
                 int baseScore = isHeadshot ? 250 : 100;
@@ -730,7 +1043,7 @@ namespace IVRAR.Group02.XR
             GameObject spark = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             spark.name = "BulletImpact";
             spark.transform.position = hit.point + hit.normal * 0.02f;
-            spark.transform.localScale = Vector3.one * 0.06f;
+            spark.transform.localScale = Vector3.one * 0.07f;
             Destroy(spark.GetComponent<Collider>());
 
             Shader s = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
@@ -744,43 +1057,62 @@ namespace IVRAR.Group02.XR
             Destroy(spark, 0.35f);
         }
 
+        private void HandleBarrelExploded(Vector3 blastPos, int targetsHit)
+        {
+            _cameraShakeIntensity = 0.45f;
+            int bonus = 500 + targetsHit * 150;
+            _score += bonus;
+            _lastHitText = $"💥 HAZMAT BARREL DETONATION! +{bonus} PTS ({targetsHit} KILLS) 💥";
+            _lastHitColor = new Color(1f, 0.55f, 0.1f);
+            _hitTextTimer = 2.0f;
+        }
+
+        private void HandleEnemyKilled(IVRAR.Group02.Environment.MovingEnemyController enemy, bool headshot, int pts)
+        {
+            _score += pts * _comboMultiplier;
+            _lastHitText = headshot ? $"★ TACTICAL HEADSHOT ELIMINATION! +{pts * _comboMultiplier} ★" : $"ENEMY NEUTRALIZED! +{pts * _comboMultiplier}";
+            _lastHitColor = headshot ? Color.yellow : Color.green;
+            _hitTextTimer = 1.4f;
+        }
+
         private IEnumerator ReloadCoroutine()
         {
             _isReloading = true;
+            int widx = (int)_currentWeapon;
 
             if (_magOutClip != null && _weaponAudioSource != null)
             {
                 _weaponAudioSource.PlayOneShot(_magOutClip, 0.85f);
             }
-            yield return new WaitForSeconds(0.40f);
+
+            float reloadDuration = _currentWeapon == WeaponType.AssaultRifleM4A1 ? 1.6f : (_currentWeapon == WeaponType.CombatShotgun ? 2.0f : 1.2f);
+            yield return new WaitForSeconds(reloadDuration * 0.5f);
 
             if (_magInClip != null && _weaponAudioSource != null)
             {
                 _weaponAudioSource.PlayOneShot(_magInClip, 0.85f);
             }
-            yield return new WaitForSeconds(0.40f);
+            yield return new WaitForSeconds(reloadDuration * 0.35f);
 
             if (_slideForwardClip != null && _weaponAudioSource != null)
             {
-                _weaponAudioSource.PlayOneShot(_slideForwardClip, 0.90f);
+                _weaponAudioSource.PlayOneShot(_slideForwardClip, 0.85f);
             }
-            yield return new WaitForSeconds(0.25f);
+            yield return new WaitForSeconds(reloadDuration * 0.15f);
 
-            _ammoCurrent = AMMO_MAX;
+            _ammoCurrent[widx] = AMMO_MAX[widx];
             _isReloading = false;
         }
 
         private void HandleTacticalAttachments()
         {
-            // Toggle Laser with 'L'
             if (Input.GetKeyDown(KeyCode.L))
             {
                 _laserActive = !_laserActive;
-                if (_laserLine != null) _laserLine.enabled = _laserActive;
-                if (_laserDot != null) _laserDot.SetActive(_laserActive);
+                if (_laserLine != null) _laserLine.enabled = _laserActive && _currentWeapon == WeaponType.Glock17;
+                if (_laserDot != null) _laserDot.SetActive(_laserActive && _currentWeapon == WeaponType.Glock17);
             }
 
-            // Toggle Flashlight with 'F'
             if (Input.GetKeyDown(KeyCode.F))
             {
                 _flashlightActive = !_flashlightActive;
@@ -788,72 +1120,49 @@ namespace IVRAR.Group02.XR
             }
         }
 
-        private void UpdateLaserSight()
-        {
-            if (!_laserActive || _laserLine == null || _targetCamera == null) return;
-
-            Vector3 startPos = _gunTransform != null ? _gunTransform.position + _gunTransform.forward * 0.12f : _targetCamera.transform.position;
-            Ray ray = new Ray(_targetCamera.transform.position, _targetCamera.transform.forward);
-
-            if (Physics.Raycast(ray, out RaycastHit hit, 150f))
-            {
-                _laserLine.SetPosition(0, startPos);
-                _laserLine.SetPosition(1, hit.point);
-
-                if (_laserDot != null)
-                {
-                    _laserDot.SetActive(true);
-                    _laserDot.transform.position = hit.point + hit.normal * 0.015f;
-                }
-            }
-            else
-            {
-                Vector3 endPos = startPos + _targetCamera.transform.forward * 100f;
-                _laserLine.SetPosition(0, startPos);
-                _laserLine.SetPosition(1, endPos);
-
-                if (_laserDot != null) _laserDot.SetActive(false);
-            }
-        }
-
         private void UpdateWeaponSwayAndRecoil()
         {
-            if (_gunTransform == null) return;
+            if (_viewmodelRoot == null) return;
 
-            // Recoil recovery
-            _recoilOffset = Vector3.Lerp(_recoilOffset, Vector3.zero, Time.deltaTime * 18f);
-            _recoilRotation = Quaternion.Slerp(_recoilRotation, Quaternion.identity, Time.deltaTime * 18f);
+            // Target positions depending on weapon and ADS
+            Vector3 targetHipPos;
+            Vector3 targetAimPos;
 
-            // Slide Blowback Animation
-            if (_slideTransform != null)
+            switch (_currentWeapon)
             {
-                if (_slideRecoilTimer > 0f)
-                {
-                    _slideRecoilTimer -= Time.deltaTime;
-                    _slideTransform.localPosition = new Vector3(0f, 0f, -0.045f); // Slide kicked back
-                }
-                else
-                {
-                    _slideTransform.localPosition = Vector3.Lerp(_slideTransform.localPosition, Vector3.zero, Time.deltaTime * 24f);
-                }
+                case WeaponType.AssaultRifleM4A1:
+                    targetHipPos = new Vector3(0.18f, -0.16f, 0.42f);
+                    targetAimPos = new Vector3(0.0f, -0.118f, 0.35f);
+                    break;
+                case WeaponType.CombatShotgun:
+                    targetHipPos = new Vector3(0.19f, -0.17f, 0.44f);
+                    targetAimPos = new Vector3(0.0f, -0.115f, 0.37f);
+                    break;
+                default: // Glock 17
+                    targetHipPos = new Vector3(0.18f, -0.16f, 0.38f);
+                    targetAimPos = new Vector3(0.0f, -0.118f, 0.33f);
+                    break;
             }
 
-            // Weapon Bobbing
-            float bobX = Mathf.Sin(_bobTimer) * 0.007f;
-            float bobY = Mathf.Abs(Mathf.Cos(_bobTimer)) * 0.007f;
+            Vector3 basePos = _isAiming ? targetAimPos : targetHipPos;
 
-            Vector3 basePos = _isAiming ? _aimPosition : _hipPosition;
-            Quaternion baseRot = _isAiming ? Quaternion.identity : Quaternion.Euler(1.5f, -2.5f, 0f);
+            // Weapon bobbing
+            float bobX = Mathf.Cos(_bobTimer) * 0.008f;
+            float bobY = Mathf.Sin(_bobTimer * 2f) * 0.007f;
+            if (_isAiming) { bobX *= 0.15f; bobY *= 0.15f; }
 
             Vector3 targetPos = basePos + new Vector3(bobX, bobY, 0f) + _recoilOffset;
-            Quaternion targetRot = baseRot * _recoilRotation;
+            _viewmodelRoot.localPosition = Vector3.Lerp(_viewmodelRoot.localPosition, targetPos, Time.deltaTime * 18f);
 
-            _gunTransform.localPosition = Vector3.Lerp(_gunTransform.localPosition, targetPos, Time.deltaTime * 16f);
-            _gunTransform.localRotation = Quaternion.Slerp(_gunTransform.localRotation, targetRot, Time.deltaTime * 16f);
-        }
+            Quaternion targetRot = _isAiming ? Quaternion.identity : Quaternion.Euler(1.5f, -2.5f, 0f);
+            targetRot *= _recoilRotation;
+            _viewmodelRoot.localRotation = Quaternion.Slerp(_viewmodelRoot.localRotation, targetRot, Time.deltaTime * 20f);
 
-        private void UpdateTimers()
-        {
+            // Recover recoil
+            _recoilOffset = Vector3.Lerp(_recoilOffset, Vector3.zero, Time.deltaTime * 14f);
+            _recoilRotation = Quaternion.Slerp(_recoilRotation, Quaternion.identity, Time.deltaTime * 14f);
+
+            // Flash timeout
             if (_flashTimer > 0f)
             {
                 _flashTimer -= Time.deltaTime;
@@ -864,139 +1173,331 @@ namespace IVRAR.Group02.XR
                 }
             }
 
-            if (_hitMarkerTimer > 0f) _hitMarkerTimer -= Time.deltaTime;
-            if (_hitTextTimer > 0f) _hitTextTimer -= Time.deltaTime;
+            // Camera shake recovery
+            if (_cameraShakeIntensity > 0f && _targetCamera != null)
+            {
+                _targetCamera.transform.position += UnityEngine.Random.insideUnitSphere * (_cameraShakeIntensity * 0.08f);
+                _cameraShakeIntensity = Mathf.MoveTowards(_cameraShakeIntensity, 0f, Time.deltaTime * 1.8f);
+            }
+        }
 
+        private void UpdateLaserSight()
+        {
+            if (!_laserActive || _laserLine == null || _targetCamera == null || _currentWeapon != WeaponType.Glock17) return;
+
+            Vector3 origin = _laserLine.transform.position;
+            Vector3 forward = _targetCamera.transform.forward;
+
+            _laserLine.SetPosition(0, origin);
+
+            if (Physics.Raycast(origin, forward, out RaycastHit hit, 80f))
+            {
+                _laserLine.SetPosition(1, hit.point);
+                if (_laserDot != null)
+                {
+                    _laserDot.SetActive(true);
+                    _laserDot.transform.position = hit.point - forward * 0.02f;
+                    _laserDot.transform.rotation = Quaternion.LookRotation(hit.normal);
+                }
+            }
+            else
+            {
+                _laserLine.SetPosition(1, origin + forward * 80f);
+                if (_laserDot != null) _laserDot.SetActive(false);
+            }
+        }
+
+        private void UpdateCombosAndEffects()
+        {
             if (_comboTimer > 0f)
             {
                 _comboTimer -= Time.deltaTime;
-                if (_comboTimer <= 0f)
-                {
-                    _comboMultiplier = 1;
-                }
+                if (_comboTimer <= 0f) _comboMultiplier = 1;
             }
+
+            if (_hitMarkerTimer > 0f) _hitMarkerTimer -= Time.deltaTime;
+            if (_hitTextTimer > 0f) _hitTextTimer -= Time.deltaTime;
         }
+
+        #endregion
+
+        #region Procedural Audio Generators
+
+        private AudioClip GenerateRifleShotClip()
+        {
+            int sampleRate = 44100;
+            float duration = 0.18f;
+            int numSamples = (int)(sampleRate * duration);
+            float[] samples = new float[numSamples];
+
+            for (int i = 0; i < numSamples; i++)
+            {
+                float t = (float)i / sampleRate;
+                float env = Mathf.Exp(-t * 22f);
+                float crack = Mathf.Sin(2f * Mathf.PI * 340f * t * (1f - t * 0.4f));
+                float noise = (UnityEngine.Random.value * 2f - 1f) * 0.75f;
+                samples[i] = (crack * 0.55f + noise * 0.45f) * env;
+            }
+
+            AudioClip clip = AudioClip.Create("RifleShot", numSamples, 1, sampleRate, false);
+            clip.SetData(samples, 0);
+            return clip;
+        }
+
+        private AudioClip GenerateShotgunShotClip()
+        {
+            int sampleRate = 44100;
+            float duration = 0.48f;
+            int numSamples = (int)(sampleRate * duration);
+            float[] samples = new float[numSamples];
+
+            for (int i = 0; i < numSamples; i++)
+            {
+                float t = (float)i / sampleRate;
+                float env = Mathf.Exp(-t * 11f);
+                float punch = Mathf.Sin(2f * Mathf.PI * 95f * t * (1f - t * 0.6f));
+                float blastNoise = (UnityEngine.Random.value * 2f - 1f) * 0.85f;
+                samples[i] = (punch * 0.65f + blastNoise * 0.55f) * env;
+            }
+
+            AudioClip clip = AudioClip.Create("ShotgunShot", numSamples, 1, sampleRate, false);
+            clip.SetData(samples, 0);
+            return clip;
+        }
+
+        private AudioClip GeneratePumpActionClip()
+        {
+            int sampleRate = 44100;
+            float duration = 0.16f;
+            int numSamples = (int)(sampleRate * duration);
+            float[] samples = new float[numSamples];
+
+            for (int i = 0; i < numSamples; i++)
+            {
+                float t = (float)i / sampleRate;
+                float env = Mathf.Exp(-t * 26f);
+                float metallic = Mathf.Sin(2f * Mathf.PI * 880f * t);
+                samples[i] = metallic * env * 0.7f;
+            }
+
+            AudioClip clip = AudioClip.Create("ShotgunPump", numSamples, 1, sampleRate, false);
+            clip.SetData(samples, 0);
+            return clip;
+        }
+
+        private AudioClip GenerateDryFireClip()
+        {
+            int sampleRate = 44100;
+            float duration = 0.08f;
+            int numSamples = (int)(sampleRate * duration);
+            float[] samples = new float[numSamples];
+
+            for (int i = 0; i < numSamples; i++)
+            {
+                float t = (float)i / sampleRate;
+                float env = Mathf.Exp(-t * 60f);
+                float click = Mathf.Sin(2f * Mathf.PI * 1800f * t);
+                samples[i] = click * env * 0.85f;
+            }
+
+            AudioClip clip = AudioClip.Create("DryFire", numSamples, 1, sampleRate, false);
+            clip.SetData(samples, 0);
+            return clip;
+        }
+
+        #endregion
+
+        #region Public API
+
+        public void SetDesktopMode(bool active)
+        {
+            IsDesktopModeActive = active;
+
+            if (_viewmodelRoot != null)
+            {
+                _viewmodelRoot.gameObject.SetActive(active);
+            }
+
+            ApplyCursorLock(active);
+            Debug.Log($"[DesktopFallbackController] Desktop Mode set to: {active}");
+        }
+
+        #endregion
+
+        #region HUD & Esports Overlay
 
         private void OnGUI()
         {
             if (!IsDesktopModeActive) return;
 
-            DrawCrosshairs();
-            DrawTacticalHUD();
+            DrawWeaponDock();
+            DrawReticleAndHitMarker();
+            DrawCombatScore();
+            DrawFloatingHitText();
+            DrawTacticalDrillHUD();
+
+            if (_showHelpOverlay)
+            {
+                DrawKeybindHelp();
+            }
         }
 
-        private void DrawCrosshairs()
+        private void DrawWeaponDock()
+        {
+            float w = 420;
+            float h = 64;
+            float x = (Screen.width - w) / 2f;
+            float y = Screen.height - h - 16;
+
+            GUI.color = new Color(0.05f, 0.07f, 0.10f, 0.88f);
+            GUI.Box(new Rect(x, y, w, h), GUIContent.none);
+
+            string[] weaponNames = { "[1] GLOCK 17", "[2] M4A1 CARBINE", "[3] REMINGTON 870" };
+            float colW = w / 3f;
+
+            GUIStyle dockStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 11,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+
+            for (int i = 0; i < 3; i++)
+            {
+                bool isSelected = (int)_currentWeapon == i;
+                GUI.color = isSelected ? new Color(1.0f, 0.85f, 0.2f, 1f) : new Color(0.6f, 0.65f, 0.7f, 0.8f);
+
+                Rect slotRect = new Rect(x + i * colW, y + 4, colW, 26);
+                GUI.Label(slotRect, weaponNames[i], dockStyle);
+
+                // Ammo subtext
+                string ammoStr = $"{_ammoCurrent[i]} / {AMMO_MAX[i]}";
+                if (_isReloading && isSelected) ammoStr = "RELOADING...";
+                GUI.color = isSelected ? Color.white : new Color(0.5f, 0.5f, 0.5f, 0.7f);
+                GUI.Label(new Rect(x + i * colW, y + 30, colW, 24), ammoStr, dockStyle);
+            }
+        }
+
+        private void DrawReticleAndHitMarker()
         {
             float cx = Screen.width / 2f;
             float cy = Screen.height / 2f;
 
-            if (_isAiming)
+            // Reticle
+            if (!_isAiming)
             {
-                // In ADS, glowing tritium iron sights line up with center; draw subtle precision point
-                GUI.color = new Color(0.2f, 1f, 0.4f, 0.85f);
-                GUI.DrawTexture(new Rect(cx - 2f, cy - 2f, 4f, 4f), Texture2D.whiteTexture);
+                GUI.color = new Color(0.2f, 1.0f, 0.4f, 0.85f);
+                if (_currentWeapon == WeaponType.CombatShotgun)
+                {
+                    // Circle reticle for shotgun
+                    GUI.Box(new Rect(cx - 16, cy - 16, 32, 32), GUIContent.none);
+                    GUI.DrawTexture(new Rect(cx - 2, cy - 2, 4, 4), Texture2D.whiteTexture);
+                }
+                else
+                {
+                    // Precision Crosshair
+                    float spread = _currentWeapon == WeaponType.AssaultRifleM4A1 ? 14f : 8f;
+                    GUI.DrawTexture(new Rect(cx - spread - 12, cy - 1.5f, 10, 3), Texture2D.whiteTexture);
+                    GUI.DrawTexture(new Rect(cx + spread + 2, cy - 1.5f, 10, 3), Texture2D.whiteTexture);
+                    GUI.DrawTexture(new Rect(cx - 1.5f, cy - spread - 12, 3, 10), Texture2D.whiteTexture);
+                    GUI.DrawTexture(new Rect(cx - 1.5f, cy + spread + 2, 3, 10), Texture2D.whiteTexture);
+                    GUI.DrawTexture(new Rect(cx - 2, cy - 2, 4, 4), Texture2D.whiteTexture);
+                }
+            }
+
+            // Hit Marker (X indicator)
+            if (_hitMarkerTimer > 0f)
+            {
+                GUI.color = Color.red;
+                GUI.DrawTexture(new Rect(cx - 10, cy - 10, 5, 5), Texture2D.whiteTexture);
+                GUI.DrawTexture(new Rect(cx + 6, cy - 10, 5, 5), Texture2D.whiteTexture);
+                GUI.DrawTexture(new Rect(cx - 10, cy + 6, 5, 5), Texture2D.whiteTexture);
+                GUI.DrawTexture(new Rect(cx + 6, cy + 6, 5, 5), Texture2D.whiteTexture);
+            }
+        }
+
+        private void DrawCombatScore()
+        {
+            float x = 20;
+            float y = 20;
+            float w = 260;
+            float h = 100;
+
+            GUI.color = new Color(0.05f, 0.07f, 0.10f, 0.85f);
+            GUI.Box(new Rect(x, y, w, h), GUIContent.none);
+
+            GUI.color = Color.white;
+            GUIStyle scoreStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 18,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleLeft
+            };
+            GUI.Label(new Rect(x + 15, y + 8, w - 30, 26), $"SCORE: {_score:N0}", scoreStyle);
+
+            GUIStyle subStyle = new GUIStyle(GUI.skin.label) { fontSize = 11, alignment = TextAnchor.MiddleLeft };
+            GUI.color = new Color(0.8f, 0.85f, 0.9f);
+            GUI.Label(new Rect(x + 15, y + 36, w - 30, 20), $"HITS: {_totalHits}  |  HEADSHOTS: {_headshots}", subStyle);
+
+            // Combo Gauge
+            if (_comboMultiplier > 1)
+            {
+                GUI.color = new Color(1f, 0.75f, 0.1f);
+                GUIStyle comboStyle = new GUIStyle(GUI.skin.label) { fontSize = 13, fontStyle = FontStyle.Bold };
+                GUI.Label(new Rect(x + 15, y + 62, w - 30, 22), $"STREAK: x{_comboMultiplier} COMBO! ({_comboTimer:F1}s)", comboStyle);
             }
             else
             {
-                // Tactical Hipfire Reticle
-                GUI.color = new Color(1f, 1f, 1f, 0.70f);
-                float gap = 8f;
-                float len = 10f;
-                float thick = 2f;
-
-                GUI.DrawTexture(new Rect(cx - gap - len, cy - thick / 2f, len, thick), Texture2D.whiteTexture);
-                GUI.DrawTexture(new Rect(cx + gap, cy - thick / 2f, len, thick), Texture2D.whiteTexture);
-                GUI.DrawTexture(new Rect(cx - thick / 2f, cy - gap - len, thick, len), Texture2D.whiteTexture);
-                GUI.DrawTexture(new Rect(cx - thick / 2f, cy + gap, thick, len), Texture2D.whiteTexture);
-            }
-
-            // Hit Marker (Red '✕')
-            if (_hitMarkerTimer > 0f)
-            {
-                GUI.color = new Color(1f, 0.2f, 0.2f, Mathf.Clamp01(_hitMarkerTimer / 0.28f));
-                GUIStyle xStyle = new GUIStyle(GUI.skin.label)
-                {
-                    fontSize = 24,
-                    fontStyle = FontStyle.Bold,
-                    alignment = TextAnchor.MiddleCenter
-                };
-                GUI.Label(new Rect(cx - 25, cy - 25, 50, 50), "✕", xStyle);
-            }
-
-            // Floating Combat Text
-            if (_hitTextTimer > 0f)
-            {
-                GUI.color = new Color(_lastHitColor.r, _lastHitColor.g, _lastHitColor.b, Mathf.Clamp01(_hitTextTimer));
-                GUIStyle hitStyle = new GUIStyle(GUI.skin.label)
-                {
-                    fontSize = 17,
-                    fontStyle = FontStyle.Bold,
-                    alignment = TextAnchor.MiddleCenter
-                };
-                GUI.Label(new Rect(cx - 200, cy - 75, 400, 35), _lastHitText, hitStyle);
+                GUI.color = new Color(0.5f, 0.55f, 0.6f);
+                GUI.Label(new Rect(x + 15, y + 62, w - 30, 20), $"SHOTS FIRED: {_shotsFired}", subStyle);
             }
         }
 
-        private void DrawTacticalHUD()
+        private void DrawFloatingHitText()
         {
-            // Bottom-Right Weapon Status
-            GUI.color = new Color(0.06f, 0.08f, 0.12f, 0.88f);
-            GUI.Box(new Rect(Screen.width - 250, Screen.height - 110, 235, 95), GUIContent.none);
+            if (_hitTextTimer <= 0f) return;
 
-            GUI.color = Color.white;
-            GUIStyle wStyle = new GUIStyle(GUI.skin.label) { fontSize = 13, fontStyle = FontStyle.Bold };
-            GUI.Label(new Rect(Screen.width - 235, Screen.height - 105, 210, 22), "GLOCK 17 (9x19mm TACTICAL)", wStyle);
+            float cx = Screen.width / 2f;
+            float cy = Screen.height * 0.40f;
 
-            GUIStyle ammoStyle = new GUIStyle(GUI.skin.label) { fontSize = 24, fontStyle = FontStyle.Bold };
-            ammoStyle.normal.textColor = _isReloading ? Color.yellow : (_ammoCurrent <= 3 ? Color.red : Color.cyan);
-            string ammoText = _isReloading ? "RELOADING..." : $"{_ammoCurrent} / {AMMO_MAX}";
-            GUI.Label(new Rect(Screen.width - 235, Screen.height - 82, 210, 32), ammoText, ammoStyle);
-
-            GUIStyle subStyle = new GUIStyle(GUI.skin.label) { fontSize = 10, normal = { textColor = new Color(0.7f, 0.75f, 0.8f) } };
-            string attachText = $"LASER [L]: {(_laserActive ? "ON" : "OFF")}  |  LIGHT [F]: {(_flashlightActive ? "ON" : "OFF")}";
-            GUI.Label(new Rect(Screen.width - 235, Screen.height - 42, 210, 20), attachText, subStyle);
-
-            // Top-Left Esports Tactical Stats & Streak
-            GUI.color = new Color(0.06f, 0.08f, 0.12f, 0.88f);
-            GUI.Box(new Rect(15, 15, 230, 95), GUIContent.none);
-
-            GUI.color = Color.white;
-            GUIStyle scoreStyle = new GUIStyle(GUI.skin.label) { fontSize = 15, fontStyle = FontStyle.Bold };
-            GUI.Label(new Rect(25, 20, 210, 24), $"SCORE: {_score}", scoreStyle);
-
-            float acc = _shotsFired > 0 ? ((float)_totalHits / _shotsFired * 100f) : 0f;
-            GUIStyle statStyle = new GUIStyle(GUI.skin.label) { fontSize = 11, normal = { textColor = Color.yellow } };
-            GUI.Label(new Rect(25, 45, 210, 20), $"HITS: {_totalHits} (HEADSHOTS: {_headshots})", statStyle);
-
-            GUIStyle comboStyle = new GUIStyle(GUI.skin.label) { fontSize = 12, fontStyle = FontStyle.Bold };
-            comboStyle.normal.textColor = _comboMultiplier > 1 ? new Color(1f, 0.4f, 0.1f) : Color.gray;
-            string comboText = _comboMultiplier > 1 ? $"COMBO STREAK: x{_comboMultiplier} ({(int)_comboTimer}s)" : $"ACCURACY: {acc:F0}%";
-            GUI.Label(new Rect(25, 68, 210, 22), comboText, comboStyle);
-
-            // Keybindings & Help Overlay (Toggle with F1)
-            if (_showHelpOverlay)
+            GUI.color = _lastHitColor;
+            GUIStyle hitStyle = new GUIStyle(GUI.skin.label)
             {
-                GUI.color = new Color(0.05f, 0.07f, 0.10f, 0.90f);
-                GUI.Box(new Rect(Screen.width - 340, 15, 325, 175), GUIContent.none);
+                fontSize = 18,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
 
-                GUI.color = Color.cyan;
-                GUIStyle guideStyle = new GUIStyle(GUI.skin.label) { fontSize = 11, fontStyle = FontStyle.Bold };
-                string guide =
-                    "<b>TACTICAL FPS CONTROLS (F1 to toggle)</b>\n" +
-                    "• <b>WASD</b>: Move | <b>Left Shift</b>: Sprint\n" +
-                    "• <b>Mouse</b>: Look | <b>Alt / Esc</b>: Unlock Cursor\n" +
-                    "• <b>Right Mouse (Hold)</b>: Aim Down Sights (ADS)\n" +
-                    "• <b>Left Mouse</b>: Fire Glock 17 | <b>R</b>: Reload\n" +
-                    "• <b>G</b>: Start / End Timed Tactical Drill (45s)\n" +
-                    "• <b>N</b>: Toggle Night-Ops Sensory Stress Mode\n" +
-                    "• <b>L</b>: Laser | <b>F</b>: Light | <b>Tab</b>: VR Mode";
-                GUI.Label(new Rect(Screen.width - 330, 20, 310, 165), guide, guideStyle);
-            }
-
-            DrawDrillStateUI();
+            GUI.Label(new Rect(cx - 250, cy, 500, 35), _lastHitText, hitStyle);
         }
 
-        private void DrawDrillStateUI()
+        private void DrawKeybindHelp()
+        {
+            float w = 240;
+            float h = 175;
+            float x = Screen.width - w - 20;
+            float y = 20;
+
+            GUI.color = new Color(0.04f, 0.06f, 0.08f, 0.85f);
+            GUI.Box(new Rect(x, y, w, h), GUIContent.none);
+
+            GUI.color = Color.yellow;
+            GUIStyle hStyle = new GUIStyle(GUI.skin.label) { fontSize = 12, fontStyle = FontStyle.Bold };
+            GUI.Label(new Rect(x + 12, y + 8, w - 24, 20), "TACTICAL CONTROLS", hStyle);
+
+            GUI.color = Color.white;
+            GUIStyle bStyle = new GUIStyle(GUI.skin.label) { fontSize = 11 };
+            float lineY = y + 30;
+            GUI.Label(new Rect(x + 12, lineY, w - 24, 18), "• WASD + Shift: Move & Sprint", bStyle); lineY += 19;
+            GUI.Label(new Rect(x + 12, lineY, w - 24, 18), "• [1] [2] [3] / Wheel: Switch Guns", bStyle); lineY += 19;
+            GUI.Label(new Rect(x + 12, lineY, w - 24, 18), "• LMB: Shoot (M4A1 Auto Spray)", bStyle); lineY += 19;
+            GUI.Label(new Rect(x + 12, lineY, w - 24, 18), "• RMB: Aim Down Sights (ADS)", bStyle); lineY += 19;
+            GUI.Label(new Rect(x + 12, lineY, w - 24, 18), "• R: Tactical Reload", bStyle); lineY += 19;
+            GUI.Label(new Rect(x + 12, lineY, w - 24, 18), "• L: Laser | F: Flashlight", bStyle); lineY += 19;
+            GUI.Label(new Rect(x + 12, lineY, w - 24, 18), "• G: 45s Drill | N: Night-Ops", bStyle);
+        }
+
+        private void DrawTacticalDrillHUD()
         {
             var drillMgr = IVRAR.Group02.Environment.TacticalDrillGameManager.Instance;
             if (drillMgr == null) return;
@@ -1005,7 +1506,6 @@ namespace IVRAR.Group02.XR
 
             if (drillMgr.CurrentState == IVRAR.Group02.Environment.DrillState.Countdown)
             {
-                // Giant Countdown in Center
                 GUI.color = Color.yellow;
                 GUIStyle cdStyle = new GUIStyle(GUI.skin.label)
                 {
@@ -1019,7 +1519,6 @@ namespace IVRAR.Group02.XR
             }
             else if (drillMgr.CurrentState == IVRAR.Group02.Environment.DrillState.ActiveDrill)
             {
-                // Top-Center Active Drill Status Bar
                 GUI.color = new Color(0.06f, 0.08f, 0.12f, 0.90f);
                 GUI.Box(new Rect(cx - 260, 15, 520, 48), GUIContent.none);
 
@@ -1035,7 +1534,6 @@ namespace IVRAR.Group02.XR
             }
             else if (drillMgr.CurrentState == IVRAR.Group02.Environment.DrillState.FreePractice)
             {
-                // Free Practice Prompt at Top Center
                 GUI.color = new Color(0.06f, 0.08f, 0.12f, 0.75f);
                 GUI.Box(new Rect(cx - 210, 15, 420, 36), GUIContent.none);
 
@@ -1050,7 +1548,6 @@ namespace IVRAR.Group02.XR
             }
             else if (drillMgr.CurrentState == IVRAR.Group02.Environment.DrillState.AfterActionReport)
             {
-                // After-Action Report Modal in Screen Center
                 float w = 480;
                 float h = 330;
                 float left = cx - w / 2f;
@@ -1068,7 +1565,6 @@ namespace IVRAR.Group02.XR
                 };
                 GUI.Label(new Rect(left, top + 15, w, 28), "★ TACTICAL DRILL AFTER-ACTION REPORT ★", headerStyle);
 
-                // Big Grade Badge
                 string rank = drillMgr.GetDrillRank();
                 Color rankCol = rank == "S" ? new Color(1f, 0.85f, 0.1f) : (rank == "A" ? Color.green : (rank == "B" ? Color.cyan : Color.white));
                 GUI.color = rankCol;
@@ -1080,7 +1576,6 @@ namespace IVRAR.Group02.XR
                 };
                 GUI.Label(new Rect(left, top + 45, w, 55), $"GRADE: {rank}", rankStyle);
 
-                // Stats lines
                 GUI.color = Color.white;
                 GUIStyle repStyle = new GUIStyle(GUI.skin.label) { fontSize = 12, alignment = TextAnchor.MiddleLeft };
                 float y = top + 105;
@@ -1109,5 +1604,7 @@ namespace IVRAR.Group02.XR
             if (_laserLine != null) _laserLine.enabled = false;
             if (_laserDot != null) _laserDot.SetActive(false);
         }
+
+        #endregion
     }
 }

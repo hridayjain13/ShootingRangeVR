@@ -114,14 +114,10 @@ namespace IVRAR.Group02.Editor
             }
 
             // Delegate to complete environment builder which creates architecture, hurdles, 22 enemies, bench, lights
-            GameObject root = RangeEnvironmentRuntimeSpawner.EnsureEnvironment();
+            GameObject root = RangeEnvironmentRuntimeSpawner.SpawnEnvironment();
             if (root != null)
             {
                 Undo.RegisterCreatedObjectUndo(root, "Populate Shooting Range Environment");
-                if (root.GetComponent<RangeEnvironmentRuntimeSpawner>() == null)
-                {
-                    root.AddComponent<RangeEnvironmentRuntimeSpawner>();
-                }
             }
 
             EditorSceneManager.MarkSceneDirty(scene);

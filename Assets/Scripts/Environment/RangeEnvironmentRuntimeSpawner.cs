@@ -3,50 +3,40 @@ using System.Collections;
 using System.Collections.Generic;
 using Interfaces;
 using Resources;
-using Targets;
 using UnityEngine;
 using IVRAR.Group02.XR;
 
 namespace IVRAR.Group02.Environment
 {
     /// <summary>
-    /// Advanced Shooting Range Environment Spawner.
-    /// Spawns:
-    /// - 22 High-visibility tactical mannequin enemies across 5 lanes with headshot and bullseye zones
-    /// - Multiple tactical hurdles: Concrete Jersey barriers, VTAC 9-hole shooting barricades,
-    ///   stacked steel oil drums, sandbag parapets, and heavy wooden cargo crates
-    /// - Balanced, atmospheric lighting (crisp, comfortable, natural illumination without washed-out glare)
-    /// - Shooting bench with Glock 17 pistols and 9x19 magazines
-    /// - Range structure (reinforced backstop, tactical sidewalls, concrete floor)
-    /// - Automatically initializes on Play mode via RuntimeInitializeOnLoadMethod
+    /// Runtime Tactical Firing Range Environment Spawner.
+    /// Procedurally constructs a modern CQB killhouse shooting range:
+    /// - 3 selectable weapons and ammo crates on the shooting bench
+    /// - 22 high-contrast reactive pop-up targets across 5 firing lanes
+    /// - Dynamic moving tactical enemies patrolling between cover
+    /// - Highly interactive explosive red hazmat barrels
+    /// - Overhead industrial steel ceiling trusses and halogen floodlights
+    /// - Rear weapon armory pegboard wall with mounted firearms
+    /// - Concrete Jersey barriers, VTAC barricades, sandbag bunkers, and crates
+    /// - Solid physics colliders preventing clipping
     /// </summary>
-    [DefaultExecutionOrder(-50)]
-    public class RangeEnvironmentRuntimeSpawner : MonoBehaviour
+    public static class RangeEnvironmentRuntimeSpawner
     {
-        private const string ROOT_NAME = "ShootingRangeEnvironment";
+        private const string ROOT_NAME = "Tactical_ShootingRange_Environment";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void AutoInitializeOnSceneLoad()
+        public static void InitializeEnvironment()
         {
-            EnsureEnvironment();
+            SpawnEnvironment();
         }
 
-        private void Awake()
+        public static GameObject SpawnEnvironment()
         {
-            EnsureEnvironment();
-        }
-
-        public static GameObject EnsureEnvironment()
-        {
-            // 1. Balanced Atmospheric Lighting (comfortable, clear, not overexposed)
-            RenderSettings.fog = false;
-            RenderSettings.ambientLight = new Color(0.68f, 0.72f, 0.78f, 1f);
-            RenderSettings.ambientIntensity = 0.82f;
-
+            // 1. Natural Directional Lighting
             Light dirLight = FindDirectionalLight();
             if (dirLight != null)
             {
-                dirLight.color = new Color(0.98f, 0.95f, 0.90f, 1f);
+                dirLight.color = new Color(0.98f, 0.95f, 0.90f);
                 dirLight.intensity = 1.15f;
             }
 
@@ -54,7 +44,7 @@ namespace IVRAR.Group02.Environment
             EnsurePlayerDesktopController();
 
             // Ensure TacticalDrillGameManager is present
-            if (FindObjectOfType<TacticalDrillGameManager>() == null)
+            if (UnityEngine.Object.FindObjectOfType<TacticalDrillGameManager>() == null)
             {
                 GameObject drillObj = new GameObject("TacticalDrillGameManager");
                 drillObj.AddComponent<TacticalDrillGameManager>();
@@ -63,10 +53,9 @@ namespace IVRAR.Group02.Environment
             GameObject root = GameObject.Find(ROOT_NAME);
             if (root != null)
             {
-                // If existing root doesn't have hurdles or has old targets, clean and rebuild
-                if (root.transform.Find("Hurdle_JerseyBarrier_01") == null)
+                if (root.transform.Find("Hurdle_JerseyBarrier_01") == null || root.transform.Find("MovingEnemy_Lane1") == null)
                 {
-                    DestroyImmediate(root);
+                    UnityEngine.Object.DestroyImmediate(root);
                 }
                 else
                 {
@@ -76,28 +65,28 @@ namespace IVRAR.Group02.Environment
 
             root = new GameObject(ROOT_NAME);
 
-            // 3. Firing Range Architecture
+            // 3. Firing Range Architecture (Floors, Backstop, Armory Wall, Overhead Trusses)
             BuildRangeArchitecture(root.transform);
 
-            // 4. Balanced Overhead Floodlighting (4 distinct ceiling banks down the range)
+            // 4. Balanced Overhead Floodlighting
             CreateCeilingLight(root.transform, "CeilingLight_Booth", new Vector3(0f, 4.4f, 1.5f), 16f, 2.4f);
             CreateCeilingLight(root.transform, "CeilingLight_MidRange", new Vector3(0f, 4.4f, 9.5f), 22f, 2.4f);
             CreateCeilingLight(root.transform, "CeilingLight_DeepRange", new Vector3(0f, 4.4f, 18.0f), 24f, 2.4f);
             CreateCeilingLight(root.transform, "CeilingLight_Backstop", new Vector3(0f, 4.4f, 27.0f), 24f, 2.4f);
 
-            // 5. Shooting Bench with Guns and Ammo
+            // 5. Shooting Bench with Glock, M4A1, Shotgun, and Ammo Crates
             BuildShootingBench(root.transform);
 
-            // 6. Tactical Hurdles & Barricades (Concrete Jersey barriers, VTAC walls, oil drums, crates, sandbags)
+            // 6. Tactical Hurdles & Barricades with Explosive Barrels
             BuildTacticalHurdles(root.transform);
 
-            // 7. 22 High-Visibility Tactical Enemy Targets across 5 Lanes
+            // 7. Tactical Static Pop-Up Targets & Dynamic Moving Enemies
             BuildTacticalEnemies(root.transform);
 
             // 8. Scoring & Diagnostic Board
             BuildAccuracyBoard(root.transform);
 
-            Debug.Log("[RangeEnvironmentRuntimeSpawner] Successfully spawned advanced tactical shooting range with 22 enemies and tactical hurdles!");
+            Debug.Log("[RangeEnvironmentRuntimeSpawner] Successfully spawned advanced CQB shooting range with weapons arsenal, moving enemies, and explosive props!");
             return root;
         }
 
@@ -105,6 +94,9 @@ namespace IVRAR.Group02.Environment
         {
             Material floorMat = CreateMaterial(new Color(0.22f, 0.24f, 0.26f, 1f));
             Material wallMat = CreateMaterial(new Color(0.26f, 0.28f, 0.32f, 1f));
+            Material metalSteel = CreateMaterial(new Color(0.18f, 0.20f, 0.22f, 1f));
+            Material neonCyan = CreateUnlitMaterial(new Color(0.1f, 0.85f, 1.0f, 1f));
+            Material neonAmber = CreateUnlitMaterial(new Color(1.0f, 0.65f, 0.1f, 1f));
 
             // Floor (28m wide x 38m long)
             GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -121,6 +113,14 @@ namespace IVRAR.Group02.Environment
             backWall.transform.position = new Vector3(0f, 4.0f, 33f);
             backWall.transform.localScale = new Vector3(30f, 8f, 1.2f);
             if (wallMat != null) backWall.GetComponent<Renderer>().material = wallMat;
+
+            // Rear Safety Wall Behind Player Booth (prevents falling off or wandering backward)
+            GameObject rearWall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            rearWall.name = "RangeRearSafetyWall";
+            rearWall.transform.SetParent(parent, false);
+            rearWall.transform.position = new Vector3(0f, 3.5f, -3.8f);
+            rearWall.transform.localScale = new Vector3(30f, 7f, 1.0f);
+            if (wallMat != null) rearWall.GetComponent<Renderer>().material = wallMat;
 
             // Side Walls
             GameObject leftWall = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -142,7 +142,6 @@ namespace IVRAR.Group02.Environment
             float[] distances = { 5f, 10f, 15f, 20f, 25f };
             foreach (float d in distances)
             {
-                // Left Wall Sign
                 GameObject signL = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 signL.name = $"MarkerSign_{d}m_L";
                 signL.transform.SetParent(parent, false);
@@ -150,7 +149,6 @@ namespace IVRAR.Group02.Environment
                 signL.transform.localScale = new Vector3(0.12f, 0.65f, 0.95f);
                 if (signMat != null) signL.GetComponent<Renderer>().material = signMat;
 
-                // Right Wall Sign
                 GameObject signR = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 signR.name = $"MarkerSign_{d}m_R";
                 signR.transform.SetParent(parent, false);
@@ -166,31 +164,136 @@ namespace IVRAR.Group02.Environment
             firingLine.transform.position = new Vector3(0f, 0.02f, 0.55f);
             firingLine.transform.localScale = new Vector3(18f, 0.02f, 0.25f);
             if (signMat != null) firingLine.GetComponent<Renderer>().material = signMat;
+
+            // Overhead Industrial Steel Ceiling Trusses
+            float[] trussZ = { 4f, 11f, 18f, 25f };
+            foreach (float z in trussZ)
+            {
+                GameObject truss = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                truss.name = $"CeilingTruss_{z}m";
+                truss.transform.SetParent(parent, false);
+                truss.transform.position = new Vector3(0f, 5.2f, z);
+                truss.transform.localScale = new Vector3(29f, 0.45f, 0.45f);
+                if (metalSteel != null) truss.GetComponent<Renderer>().material = metalSteel;
+            }
+
+            // Illuminated CQB Neon Sign on Backstop
+            GameObject marquee = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            marquee.name = "NeonMarqueeSign";
+            marquee.transform.SetParent(parent, false);
+            marquee.transform.position = new Vector3(0f, 6.2f, 32.2f);
+            marquee.transform.localScale = new Vector3(14f, 1.4f, 0.15f);
+            if (metalSteel != null) marquee.GetComponent<Renderer>().material = metalSteel;
+
+            // Glowing Sign Borders
+            GameObject borderTop = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            borderTop.name = "MarqueeBorderTop";
+            borderTop.transform.SetParent(marquee.transform, false);
+            borderTop.transform.localPosition = new Vector3(0f, 0.52f, -0.55f);
+            borderTop.transform.localScale = new Vector3(0.98f, 0.06f, 0.2f);
+            UnityEngine.Object.Destroy(borderTop.GetComponent<Collider>());
+            if (neonCyan != null) borderTop.GetComponent<Renderer>().material = neonCyan;
+
+            GameObject borderBottom = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            borderBottom.name = "MarqueeBorderBottom";
+            borderBottom.transform.SetParent(marquee.transform, false);
+            borderBottom.transform.localPosition = new Vector3(0f, -0.52f, -0.55f);
+            borderBottom.transform.localScale = new Vector3(0.98f, 0.06f, 0.2f);
+            UnityEngine.Object.Destroy(borderBottom.GetComponent<Collider>());
+            if (neonAmber != null) borderBottom.GetComponent<Renderer>().material = neonAmber;
+
+            // Rear Weapon Pegboard & Armory Wall Behind Firing Booth
+            BuildArmoryWall(parent);
+        }
+
+        private static void BuildArmoryWall(Transform parent)
+        {
+            Material pegboardMat = CreateMaterial(new Color(0.18f, 0.19f, 0.22f, 1f));
+            Material woodStock = CreateMaterial(new Color(0.42f, 0.28f, 0.18f, 1f));
+            Material blackGun = CreateMaterial(new Color(0.12f, 0.12f, 0.14f, 1f));
+            Material ammoGreen = CreateMaterial(new Color(0.24f, 0.35f, 0.22f, 1f));
+
+            // Pegboard Panel
+            GameObject board = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            board.name = "ArmoryPegboard";
+            board.transform.SetParent(parent, false);
+            board.transform.position = new Vector3(0f, 1.8f, -3.2f);
+            board.transform.localScale = new Vector3(5.5f, 2.4f, 0.10f);
+            if (pegboardMat != null) board.GetComponent<Renderer>().material = pegboardMat;
+
+            // Mounted Rifles on Pegboard
+            CreateMountedRifle(board.transform, new Vector3(-1.4f, 0.45f, -0.6f), blackGun);
+            CreateMountedRifle(board.transform, new Vector3(1.4f, 0.45f, -0.6f), blackGun);
+            CreateMountedShotgun(board.transform, new Vector3(0f, 0.0f, -0.6f), blackGun, woodStock);
+
+            // Ammo Supply Crates on Floor Beside Armory
+            CreateAmmoCrate(parent, new Vector3(-2.2f, 0.22f, -2.6f), "5.56x45 NATO", ammoGreen);
+            CreateAmmoCrate(parent, new Vector3(2.2f, 0.22f, -2.6f), "12 GA BUCK", ammoGreen);
+            CreateAmmoCrate(parent, new Vector3(2.2f, 0.62f, -2.6f), "9x19 LUGER", ammoGreen);
+        }
+
+        private static void CreateMountedRifle(Transform parent, Vector3 localPos, Material mat)
+        {
+            GameObject rifle = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            rifle.name = "Mounted_M4A1";
+            rifle.transform.SetParent(parent, false);
+            rifle.transform.localPosition = localPos;
+            rifle.transform.localScale = new Vector3(0.35f, 0.07f, 0.08f);
+            UnityEngine.Object.Destroy(rifle.GetComponent<Collider>());
+            if (mat != null) rifle.GetComponent<Renderer>().material = mat;
+        }
+
+        private static void CreateMountedShotgun(Transform parent, Vector3 localPos, Material metal, Material wood)
+        {
+            GameObject shotgun = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            shotgun.name = "Mounted_Shotgun";
+            shotgun.transform.SetParent(parent, false);
+            shotgun.transform.localPosition = localPos;
+            shotgun.transform.localScale = new Vector3(0.42f, 0.06f, 0.08f);
+            UnityEngine.Object.Destroy(shotgun.GetComponent<Collider>());
+            if (metal != null) shotgun.GetComponent<Renderer>().material = metal;
+        }
+
+        private static void CreateAmmoCrate(Transform parent, Vector3 pos, string label, Material mat)
+        {
+            GameObject crate = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            crate.name = $"AmmoCrate_{label}";
+            crate.transform.SetParent(parent, false);
+            crate.transform.position = pos;
+            crate.transform.localScale = new Vector3(0.65f, 0.38f, 0.42f);
+            if (mat != null) crate.GetComponent<Renderer>().material = mat;
         }
 
         private static void BuildShootingBench(Transform parent)
         {
             Material benchMat = CreateMaterial(new Color(0.20f, 0.15f, 0.12f, 1f));
 
+            // Shooting Bench with solid BoxCollider
             GameObject bench = GameObject.CreatePrimitive(PrimitiveType.Cube);
             bench.name = "ShootingBench";
             bench.transform.SetParent(parent, false);
             bench.transform.position = new Vector3(0f, 0.45f, 0.95f);
-            bench.transform.localScale = new Vector3(2.8f, 0.9f, 0.75f);
+            bench.transform.localScale = new Vector3(3.2f, 0.9f, 0.85f);
             if (benchMat != null) bench.GetComponent<Renderer>().material = benchMat;
 
-            // Primary and Secondary Glock 17 props on bench
-            CreateVisualGlockProp(parent, new Vector3(0.35f, 0.93f, 0.95f), "Bench_Glock17_Primary");
-            CreateVisualGlockProp(parent, new Vector3(0.75f, 0.93f, 0.95f), "Bench_Glock17_Secondary");
+            // [1] Glock 17 Props
+            CreateVisualGlockProp(parent, new Vector3(-0.75f, 0.93f, 0.95f), "Bench_Glock17_Primary");
 
-            // Magazines on bench
-            CreateVisualMagProp(parent, new Vector3(-0.25f, 0.92f, 0.95f), "Bench_Mag_A");
-            CreateVisualMagProp(parent, new Vector3(-0.55f, 0.92f, 0.95f), "Bench_Mag_B");
+            // [2] M4A1 Tactical Carbine Prop on Bench
+            CreateVisualCarbineProp(parent, new Vector3(0.0f, 0.94f, 0.95f), "Bench_M4A1_Carbine");
+
+            // [3] Remington 870 Shotgun Prop on Bench
+            CreateVisualShotgunProp(parent, new Vector3(0.75f, 0.94f, 0.95f), "Bench_Remington870");
+
+            // Ammo Magazines & Boxes
+            CreateVisualMagProp(parent, new Vector3(-1.1f, 0.92f, 0.95f), "Bench_PistolMag_A");
+            CreateVisualMagProp(parent, new Vector3(-0.4f, 0.92f, 0.95f), "Bench_RifleMag_STANAG");
+            CreateAmmoBoxSmall(parent, new Vector3(1.2f, 0.93f, 0.95f), "ShotgunShellBox");
         }
 
         private static void BuildTacticalHurdles(Transform parent)
         {
-            // 1. VTAC Wooden Shooting Barricades near firing line (with shooting ports)
+            // 1. VTAC Wooden Shooting Barricades near firing line
             CreateVtacBarricade(parent, "Hurdle_VTAC_Left", new Vector3(-1.8f, 0f, 4.5f), 12f);
             CreateVtacBarricade(parent, "Hurdle_VTAC_Right", new Vector3(1.8f, 0f, 4.5f), -12f);
 
@@ -210,7 +313,14 @@ namespace IVRAR.Group02.Environment
             CreateDrumCluster(parent, "Hurdle_Drums_Mid", new Vector3(1.2f, 0f, 14.8f));
             CreateDrumCluster(parent, "Hurdle_Drums_Deep", new Vector3(-4.2f, 0f, 23.5f));
 
-            // 5. Heavy Cargo & Weapon Crates
+            // 5. Interactive Explosive Hazmat Barrels (Red drums that blow up when shot)
+            CreateExplosiveBarrel(parent, "Hazmat_Explosive_NearLeft", new Vector3(-4.2f, 0f, 8.2f));
+            CreateExplosiveBarrel(parent, "Hazmat_Explosive_MidRight", new Vector3(4.2f, 0f, 11.5f));
+            CreateExplosiveBarrel(parent, "Hazmat_Explosive_CenterCover", new Vector3(1.4f, 0f, 16.5f));
+            CreateExplosiveBarrel(parent, "Hazmat_Explosive_DeepLeft", new Vector3(-2.5f, 0f, 23.2f));
+            CreateExplosiveBarrel(parent, "Hazmat_Explosive_DeepRight", new Vector3(3.8f, 0f, 24.0f));
+
+            // 6. Heavy Cargo & Weapon Crates
             CreateCrateStack(parent, "Hurdle_Crates_Left", new Vector3(-2.0f, 0f, 18.5f));
             CreateCrateStack(parent, "Hurdle_Crates_Right", new Vector3(4.2f, 0f, 20.0f));
             CreateCrateStack(parent, "Hurdle_Crates_Far", new Vector3(0f, 0f, 25.0f));
@@ -218,25 +328,26 @@ namespace IVRAR.Group02.Environment
 
         private static void BuildTacticalEnemies(Transform parent)
         {
-            var enemies = new List<(string name, Vector3 pos, bool hasSway)>
+            // 22 Static / Drill Pop-Up Targets
+            var targets = new (string name, Vector3 pos, bool hasSway)[]
             {
                 // Lane 1: Far Left (x = -5.0m)
-                ("Enemy_L1_Near", new Vector3(-5.0f, 0f, 7.0f), false),
-                ("Enemy_L1_Mid1", new Vector3(-5.2f, 0f, 12.5f), true),
-                ("Enemy_L1_Mid2", new Vector3(-4.8f, 0f, 18.5f), false),
-                ("Enemy_L1_Deep", new Vector3(-5.0f, 0f, 25.0f), true),
+                ("Enemy_L1_Near", new Vector3(-5.0f, 0f, 7.5f), false),
+                ("Enemy_L1_Mid1", new Vector3(-4.8f, 0f, 13.5f), true),
+                ("Enemy_L1_Mid2", new Vector3(-5.2f, 0f, 19.5f), false),
+                ("Enemy_L1_Deep", new Vector3(-5.0f, 0f, 25.5f), true),
 
                 // Lane 2: Mid Left (x = -2.5m)
-                ("Enemy_L2_Near", new Vector3(-2.5f, 0f, 5.8f), false),
-                ("Enemy_L2_Cover", new Vector3(-2.8f, 0f, 9.2f), true),
-                ("Enemy_L2_Mid", new Vector3(-2.4f, 0f, 14.0f), false),
+                ("Enemy_L2_Near", new Vector3(-2.5f, 0f, 6.0f), false),
+                ("Enemy_L2_Cover", new Vector3(-2.8f, 0f, 10.5f), true),
+                ("Enemy_L2_Mid", new Vector3(-2.3f, 0f, 15.0f), false),
                 ("Enemy_L2_Deep1", new Vector3(-2.6f, 0f, 20.0f), true),
-                ("Enemy_L2_Deep2", new Vector3(-2.5f, 0f, 27.0f), false),
+                ("Enemy_L2_Deep2", new Vector3(-2.4f, 0f, 26.0f), false),
 
                 // Lane 3: Center (x = 0.0m)
-                ("Enemy_Center_Close", new Vector3(0.0f, 0f, 5.0f), false),
-                ("Enemy_Center_Bunker1", new Vector3(0.0f, 0f, 10.0f), true),
-                ("Enemy_Center_Bunker2", new Vector3(0.0f, 0f, 15.0f), false),
+                ("Enemy_Center_NearPointBlank", new Vector3(0.0f, 0f, 5.2f), false),
+                ("Enemy_Center_BunkerCover", new Vector3(0.0f, 0f, 10.0f), true),
+                ("Enemy_Center_Mid", new Vector3(0.0f, 0f, 15.5f), false),
                 ("Enemy_Center_Deep1", new Vector3(0.0f, 0f, 21.0f), true),
                 ("Enemy_Center_Backstop", new Vector3(0.0f, 0f, 28.0f), false),
 
@@ -254,10 +365,80 @@ namespace IVRAR.Group02.Environment
                 ("Enemy_L5_Deep", new Vector3(5.0f, 0f, 26.5f), true),
             };
 
-            foreach (var e in enemies)
+            foreach (var e in targets)
             {
                 CreateHighVisibilityEnemy(parent, e.name, e.pos, e.hasSway);
             }
+
+            // 3 Dynamic Moving Tactical Combat Enemies that patrol between cover
+            CreateMovingCombatEnemy(parent, "MovingEnemy_Lane1", new Vector3(-3.5f, 0f, 9.0f), 2.2f);
+            CreateMovingCombatEnemy(parent, "MovingEnemy_Lane3", new Vector3(0.0f, 0f, 14.5f), 2.6f);
+            CreateMovingCombatEnemy(parent, "MovingEnemy_Lane5", new Vector3(3.8f, 0f, 19.0f), 2.8f);
+        }
+
+        private static void CreateMovingCombatEnemy(Transform parent, string name, Vector3 pos, float speed)
+        {
+            GameObject enemy = new GameObject(name);
+            enemy.transform.SetParent(parent, false);
+            enemy.transform.position = pos;
+
+            Material steelMat = CreateMaterial(new Color(0.25f, 0.27f, 0.30f, 1f));
+            Material camoMat = CreateMaterial(new Color(0.18f, 0.25f, 0.18f, 1f)); // tactical camo
+            Material headMat = CreateMaterial(new Color(0.15f, 0.22f, 0.35f, 1f));
+
+            // Torso
+            GameObject torso = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            torso.name = "Torso";
+            torso.transform.SetParent(enemy.transform, false);
+            torso.transform.localPosition = new Vector3(0f, 1.35f, 0f);
+            torso.transform.localScale = new Vector3(0.55f, 0.74f, 0.18f);
+            if (camoMat != null) torso.GetComponent<Renderer>().material = camoMat;
+
+            // Head
+            GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            head.name = "Head";
+            head.transform.SetParent(enemy.transform, false);
+            head.transform.localPosition = new Vector3(0f, 1.86f, 0f);
+            head.transform.localScale = new Vector3(0.32f, 0.34f, 0.28f);
+            if (headMat != null) head.GetComponent<Renderer>().material = headMat;
+
+            // Legs Stand
+            GameObject legs = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            legs.name = "Legs";
+            legs.transform.SetParent(enemy.transform, false);
+            legs.transform.localPosition = new Vector3(0f, 0.50f, 0f);
+            legs.transform.localScale = new Vector3(0.12f, 0.50f, 0.12f);
+            UnityEngine.Object.Destroy(legs.GetComponent<Collider>());
+            if (steelMat != null) legs.GetComponent<Renderer>().material = steelMat;
+
+            // AI Movement Controller
+            enemy.AddComponent<MovingEnemyController>();
+        }
+
+        private static void CreateExplosiveBarrel(Transform parent, string name, Vector3 pos)
+        {
+            GameObject barrel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            barrel.name = name;
+            barrel.transform.SetParent(parent, false);
+            barrel.transform.position = pos + Vector3.up * 0.48f;
+            barrel.transform.localScale = new Vector3(0.62f, 0.48f, 0.62f);
+
+            Material redHazmat = CreateMaterial(new Color(0.85f, 0.15f, 0.12f, 1f));
+            Material yellowStripe = CreateMaterial(new Color(0.95f, 0.80f, 0.15f, 1f));
+
+            if (redHazmat != null) barrel.GetComponent<Renderer>().material = redHazmat;
+
+            // Hazardous Warning Band
+            GameObject band = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            band.name = "HazardStripeBand";
+            band.transform.SetParent(barrel.transform, false);
+            band.transform.localPosition = Vector3.zero;
+            band.transform.localScale = new Vector3(1.02f, 0.22f, 1.02f);
+            UnityEngine.Object.Destroy(band.GetComponent<Collider>());
+            if (yellowStripe != null) band.GetComponent<Renderer>().material = yellowStripe;
+
+            // Explosive Barrel Logic
+            barrel.AddComponent<ExplosiveBarrel>();
         }
 
         private static void CreateHighVisibilityEnemy(Transform parent, string name, Vector3 pos, bool hasSway)
@@ -272,25 +453,25 @@ namespace IVRAR.Group02.Environment
             Material ringAmberMat = CreateMaterial(new Color(0.95f, 0.55f, 0.10f, 1f));
             Material bullseyeRedMat = CreateMaterial(new Color(0.92f, 0.15f, 0.15f, 1f));
 
-            // 1. Heavy Steel Mounting Base at Ground Level
+            // Heavy Steel Base
             GameObject baseStand = GameObject.CreatePrimitive(PrimitiveType.Cube);
             baseStand.name = "MountBase";
             baseStand.transform.SetParent(enemy.transform, false);
             baseStand.transform.localPosition = new Vector3(0f, 0.05f, 0f);
             baseStand.transform.localScale = new Vector3(0.55f, 0.10f, 0.45f);
-            Destroy(baseStand.GetComponent<Collider>());
+            UnityEngine.Object.Destroy(baseStand.GetComponent<Collider>());
             if (steelMat != null) baseStand.GetComponent<Renderer>().material = steelMat;
 
-            // 2. Upright Steel Mast
+            // Mast
             GameObject mast = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             mast.name = "Mast";
             mast.transform.SetParent(enemy.transform, false);
             mast.transform.localPosition = new Vector3(0f, 0.55f, 0f);
             mast.transform.localScale = new Vector3(0.08f, 0.55f, 0.08f);
-            Destroy(mast.GetComponent<Collider>());
+            UnityEngine.Object.Destroy(mast.GetComponent<Collider>());
             if (steelMat != null) mast.GetComponent<Renderer>().material = steelMat;
 
-            // 3. High-Contrast Torso Board with Scoring Rings
+            // High-Contrast Torso Board
             GameObject torso = GameObject.CreatePrimitive(PrimitiveType.Cube);
             torso.name = "Torso";
             torso.transform.SetParent(enemy.transform, false);
@@ -298,37 +479,35 @@ namespace IVRAR.Group02.Environment
             torso.transform.localScale = new Vector3(0.52f, 0.72f, 0.08f);
             if (torsoNavyMat != null) torso.GetComponent<Renderer>().material = torsoNavyMat;
 
-            // Outer White Ring (Ring 8)
+            // Rings
             GameObject ring8 = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             ring8.name = "Ring_Outer_White";
             ring8.transform.SetParent(torso.transform, false);
             ring8.transform.localPosition = new Vector3(0f, 0.05f, -0.52f);
             ring8.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             ring8.transform.localScale = new Vector3(0.68f, 0.02f, 0.68f);
-            Destroy(ring8.GetComponent<Collider>());
+            UnityEngine.Object.Destroy(ring8.GetComponent<Collider>());
             if (ringWhiteMat != null) ring8.GetComponent<Renderer>().material = ringWhiteMat;
 
-            // Inner Amber Ring (Ring 9)
             GameObject ring9 = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             ring9.name = "Ring_Inner_Amber";
             ring9.transform.SetParent(torso.transform, false);
             ring9.transform.localPosition = new Vector3(0f, 0.05f, -0.54f);
             ring9.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             ring9.transform.localScale = new Vector3(0.44f, 0.025f, 0.44f);
-            Destroy(ring9.GetComponent<Collider>());
+            UnityEngine.Object.Destroy(ring9.GetComponent<Collider>());
             if (ringAmberMat != null) ring9.GetComponent<Renderer>().material = ringAmberMat;
 
-            // Center Bullseye (10 Ring)
             GameObject bullseye = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             bullseye.name = "Bullseye_Center_Red";
             bullseye.transform.SetParent(torso.transform, false);
             bullseye.transform.localPosition = new Vector3(0f, 0.05f, -0.56f);
             bullseye.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             bullseye.transform.localScale = new Vector3(0.22f, 0.03f, 0.22f);
-            Destroy(bullseye.GetComponent<Collider>());
+            UnityEngine.Object.Destroy(bullseye.GetComponent<Collider>());
             if (bullseyeRedMat != null) bullseye.GetComponent<Renderer>().material = bullseyeRedMat;
 
-            // 4. Silhouette Head with Dedicated Headshot Collider
+            // Head with dedicated headshot collider
             GameObject head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             head.name = "Head";
             head.transform.SetParent(enemy.transform, false);
@@ -336,36 +515,18 @@ namespace IVRAR.Group02.Environment
             head.transform.localScale = new Vector3(0.28f, 0.30f, 0.24f);
             if (torsoNavyMat != null) head.GetComponent<Renderer>().material = torsoNavyMat;
 
-            // Headshot Red Dot Marker on Forehead
+            // Headshot Red Dot
             GameObject headMarker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             headMarker.name = "HeadshotMarker";
             headMarker.transform.SetParent(head.transform, false);
             headMarker.transform.localPosition = new Vector3(0f, 0.05f, -0.48f);
             headMarker.transform.localScale = new Vector3(0.32f, 0.32f, 0.32f);
-            Destroy(headMarker.GetComponent<Collider>());
+            UnityEngine.Object.Destroy(headMarker.GetComponent<Collider>());
             if (bullseyeRedMat != null) headMarker.GetComponent<Renderer>().material = bullseyeRedMat;
 
-            // 5. Pulsing Red Tactical Indicator LED on Stand (Ensures 100% visibility even at long distance)
-            GameObject beacon = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            beacon.name = "TacticalBeaconLED";
-            beacon.transform.SetParent(enemy.transform, false);
-            beacon.transform.localPosition = new Vector3(0f, 0.95f, -0.06f);
-            beacon.transform.localScale = Vector3.one * 0.07f;
-            Destroy(beacon.GetComponent<Collider>());
-            Shader unlit = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
-            if (unlit != null)
-            {
-                Material ledMat = new Material(unlit) { color = new Color(1f, 0.2f, 0.2f, 1f) };
-                beacon.GetComponent<Renderer>().material = ledMat;
-            }
-
-            // 6. Add Pop-Up Controller and Target Discrimination
+            // Pop-Up Controller
             enemy.AddComponent<TargetPopUpController>();
         }
-
-        // ==========================================
-        // TACTICAL HURDLES BUILDERS
-        // ==========================================
 
         private static void CreateJerseyBarrier(Transform parent, string name, Vector3 pos, float yaw)
         {
@@ -377,7 +538,6 @@ namespace IVRAR.Group02.Environment
             Material concrete = CreateMaterial(new Color(0.45f, 0.46f, 0.48f, 1f));
             Material hazardStripe = CreateMaterial(new Color(0.85f, 0.70f, 0.15f, 1f));
 
-            // Concrete Base
             GameObject bBase = GameObject.CreatePrimitive(PrimitiveType.Cube);
             bBase.name = "Base";
             bBase.transform.SetParent(barrier.transform, false);
@@ -385,7 +545,6 @@ namespace IVRAR.Group02.Environment
             bBase.transform.localScale = new Vector3(3.0f, 0.50f, 0.65f);
             if (concrete != null) bBase.GetComponent<Renderer>().material = concrete;
 
-            // Concrete Upper Wall
             GameObject bTop = GameObject.CreatePrimitive(PrimitiveType.Cube);
             bTop.name = "Wall";
             bTop.transform.SetParent(barrier.transform, false);
@@ -393,13 +552,12 @@ namespace IVRAR.Group02.Environment
             bTop.transform.localScale = new Vector3(3.0f, 0.60f, 0.28f);
             if (concrete != null) bTop.GetComponent<Renderer>().material = concrete;
 
-            // Hazard Warning Stripe
             GameObject stripe = GameObject.CreatePrimitive(PrimitiveType.Cube);
             stripe.name = "HazardStripe";
             stripe.transform.SetParent(barrier.transform, false);
             stripe.transform.localPosition = new Vector3(0f, 0.75f, -0.15f);
             stripe.transform.localScale = new Vector3(2.6f, 0.18f, 0.02f);
-            Destroy(stripe.GetComponent<Collider>());
+            UnityEngine.Object.Destroy(stripe.GetComponent<Collider>());
             if (hazardStripe != null) stripe.GetComponent<Renderer>().material = hazardStripe;
         }
 
@@ -412,7 +570,6 @@ namespace IVRAR.Group02.Environment
 
             Material woodMat = CreateMaterial(new Color(0.48f, 0.36f, 0.24f, 1f));
 
-            // Main Barricade Board (Height 2.1m x Width 1.8m)
             GameObject board = GameObject.CreatePrimitive(PrimitiveType.Cube);
             board.name = "VTAC_Board";
             board.transform.SetParent(vtac.transform, false);
@@ -420,24 +577,6 @@ namespace IVRAR.Group02.Environment
             board.transform.localScale = new Vector3(1.8f, 2.1f, 0.06f);
             if (woodMat != null) board.GetComponent<Renderer>().material = woodMat;
 
-            // Standing Shooting Window (Visual border)
-            GameObject portStand = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            portStand.name = "Port_Standing";
-            portStand.transform.SetParent(vtac.transform, false);
-            portStand.transform.localPosition = new Vector3(0.35f, 1.45f, -0.04f);
-            portStand.transform.localScale = new Vector3(0.40f, 0.35f, 0.04f);
-            Material blackHole = CreateMaterial(new Color(0.08f, 0.08f, 0.08f, 1f));
-            if (blackHole != null) portStand.GetComponent<Renderer>().material = blackHole;
-
-            // Kneeling Shooting Window
-            GameObject portKneel = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            portKneel.name = "Port_Kneeling";
-            portKneel.transform.SetParent(vtac.transform, false);
-            portKneel.transform.localPosition = new Vector3(-0.35f, 0.85f, -0.04f);
-            portKneel.transform.localScale = new Vector3(0.35f, 0.30f, 0.04f);
-            if (blackHole != null) portKneel.GetComponent<Renderer>().material = blackHole;
-
-            // Rear Braces
             GameObject brace = GameObject.CreatePrimitive(PrimitiveType.Cube);
             brace.name = "RearBrace";
             brace.transform.SetParent(vtac.transform, false);
@@ -456,7 +595,6 @@ namespace IVRAR.Group02.Environment
 
             Material burlap = CreateMaterial(new Color(0.55f, 0.48f, 0.36f, 1f));
 
-            // Layer 1
             for (int i = -2; i <= 2; i++)
             {
                 GameObject bag = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -467,7 +605,6 @@ namespace IVRAR.Group02.Environment
                 if (burlap != null) bag.GetComponent<Renderer>().material = burlap;
             }
 
-            // Layer 2
             for (int i = -1; i <= 2; i++)
             {
                 GameObject bag = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -478,7 +615,6 @@ namespace IVRAR.Group02.Environment
                 if (burlap != null) bag.GetComponent<Renderer>().material = burlap;
             }
 
-            // Layer 3
             for (int i = -1; i <= 1; i++)
             {
                 GameObject bag = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -497,12 +633,10 @@ namespace IVRAR.Group02.Environment
             cluster.transform.position = pos;
 
             Material blueMetal = CreateMaterial(new Color(0.18f, 0.32f, 0.52f, 1f));
-            Material redMetal = CreateMaterial(new Color(0.58f, 0.18f, 0.18f, 1f));
             Material greenMetal = CreateMaterial(new Color(0.24f, 0.40f, 0.26f, 1f));
 
             CreateSingleDrum(cluster.transform, "Drum_1", new Vector3(-0.35f, 0.48f, 0f), blueMetal);
-            CreateSingleDrum(cluster.transform, "Drum_2", new Vector3(0.35f, 0.48f, 0f), redMetal);
-            CreateSingleDrum(cluster.transform, "Drum_3", new Vector3(0f, 0.48f, 0.55f), greenMetal);
+            CreateSingleDrum(cluster.transform, "Drum_2", new Vector3(0.35f, 0.48f, 0f), greenMetal);
         }
 
         private static void CreateSingleDrum(Transform parent, string name, Vector3 pos, Material mat)
@@ -523,7 +657,6 @@ namespace IVRAR.Group02.Environment
 
             Material woodCrate = CreateMaterial(new Color(0.42f, 0.32f, 0.20f, 1f));
 
-            // Base Crate 1
             GameObject c1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
             c1.name = "Crate_Base_1";
             c1.transform.SetParent(stack.transform, false);
@@ -531,7 +664,6 @@ namespace IVRAR.Group02.Environment
             c1.transform.localScale = new Vector3(0.9f, 0.9f, 0.9f);
             if (woodCrate != null) c1.GetComponent<Renderer>().material = woodCrate;
 
-            // Base Crate 2
             GameObject c2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
             c2.name = "Crate_Base_2";
             c2.transform.SetParent(stack.transform, false);
@@ -539,7 +671,6 @@ namespace IVRAR.Group02.Environment
             c2.transform.localScale = new Vector3(0.9f, 0.9f, 0.9f);
             if (woodCrate != null) c2.GetComponent<Renderer>().material = woodCrate;
 
-            // Top Crate
             GameObject cTop = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cTop.name = "Crate_Top";
             cTop.transform.SetParent(stack.transform, false);
@@ -576,7 +707,7 @@ namespace IVRAR.Group02.Environment
 
         private static Light FindDirectionalLight()
         {
-            foreach (var light in FindObjectsOfType<Light>())
+            foreach (var light in UnityEngine.Object.FindObjectsOfType<Light>())
             {
                 if (light.type == LightType.Directional) return light;
             }
@@ -585,7 +716,7 @@ namespace IVRAR.Group02.Environment
 
         private static void EnsurePlayerDesktopController()
         {
-            Camera cam = Camera.main ?? FindObjectOfType<Camera>();
+            Camera cam = Camera.main ?? UnityEngine.Object.FindObjectOfType<Camera>();
             if (cam == null) return;
 
             if (cam.GetComponent<AudioListener>() == null)
@@ -593,7 +724,7 @@ namespace IVRAR.Group02.Environment
                 cam.gameObject.AddComponent<AudioListener>();
             }
 
-            if (FindObjectOfType<DesktopFallbackController>() == null)
+            if (UnityEngine.Object.FindObjectOfType<DesktopFallbackController>() == null)
             {
                 cam.gameObject.AddComponent<DesktopFallbackController>();
             }
@@ -602,6 +733,15 @@ namespace IVRAR.Group02.Environment
         private static Material CreateMaterial(Color col)
         {
             Shader s = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            if (s == null) return null;
+            Material m = new Material(s);
+            m.color = col;
+            return m;
+        }
+
+        private static Material CreateUnlitMaterial(Color col)
+        {
+            Shader s = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
             if (s == null) return null;
             Material m = new Material(s);
             m.color = col;
@@ -633,6 +773,41 @@ namespace IVRAR.Group02.Environment
             if (polymer != null) grip.GetComponent<Renderer>().material = polymer;
         }
 
+        private static void CreateVisualCarbineProp(Transform parent, Vector3 pos, string name)
+        {
+            GameObject prop = new GameObject(name);
+            prop.transform.SetParent(parent);
+            prop.transform.position = pos;
+            prop.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+
+            Material steel = CreateMaterial(new Color(0.12f, 0.12f, 0.14f, 1f));
+
+            // Receiver & Barrel
+            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            body.name = "Body";
+            body.transform.SetParent(prop.transform, false);
+            body.transform.localPosition = new Vector3(0f, 0.04f, 0f);
+            body.transform.localScale = new Vector3(0.04f, 0.08f, 0.65f);
+            if (steel != null) body.GetComponent<Renderer>().material = steel;
+        }
+
+        private static void CreateVisualShotgunProp(Transform parent, Vector3 pos, string name)
+        {
+            GameObject prop = new GameObject(name);
+            prop.transform.SetParent(parent);
+            prop.transform.position = pos;
+            prop.transform.rotation = Quaternion.Euler(0f, 85f, 0f);
+
+            Material steel = CreateMaterial(new Color(0.14f, 0.14f, 0.16f, 1f));
+
+            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            body.name = "Body";
+            body.transform.SetParent(prop.transform, false);
+            body.transform.localPosition = new Vector3(0f, 0.04f, 0f);
+            body.transform.localScale = new Vector3(0.04f, 0.07f, 0.85f);
+            if (steel != null) body.GetComponent<Renderer>().material = steel;
+        }
+
         private static void CreateVisualMagProp(Transform parent, Vector3 pos, string name)
         {
             GameObject mag = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -644,91 +819,16 @@ namespace IVRAR.Group02.Environment
             Material m = CreateMaterial(new Color(0.14f, 0.14f, 0.16f, 1f));
             if (m != null) mag.GetComponent<Renderer>().material = m;
         }
-    }
 
-    /// <summary>
-    /// Interactive Hit Reaction for Shooting Range Targets.
-    /// Supports headshot detection, physical tilt impulse, red flash, and subtle peek/sway movement.
-    /// </summary>
-    public class TargetHitReaction : MonoBehaviour, IDamageable
-    {
-        private bool _hasSway = false;
-        private float _swayTimer = 0f;
-        private Vector3 _basePos;
-        private Quaternion _baseRot;
-
-        private void Start()
+        private static void CreateAmmoBoxSmall(Transform parent, Vector3 pos, string name)
         {
-            _basePos = transform.position;
-            _baseRot = transform.localRotation;
-            _swayTimer = UnityEngine.Random.Range(0f, 6.28f);
-        }
-
-        public void SetHasSway(bool hasSway)
-        {
-            _hasSway = hasSway;
-        }
-
-        private void Update()
-        {
-            if (_hasSway)
-            {
-                _swayTimer += Time.deltaTime * 1.5f;
-                // Subtle tactical peek side to side behind hurdles
-                float xOffset = Mathf.Sin(_swayTimer) * 0.25f;
-                transform.position = new Vector3(_basePos.x + xOffset, _basePos.y, _basePos.z);
-            }
-        }
-
-        public void Damage(DamageData damageData)
-        {
-            StopAllCoroutines();
-            StartCoroutine(HitImpulseCoroutine());
-        }
-
-        private IEnumerator HitImpulseCoroutine()
-        {
-            Quaternion orig = _baseRot;
-            Quaternion tilt = orig * Quaternion.Euler(-10f, 0f, UnityEngine.Random.Range(-5f, 5f));
-
-            // Flash red on hit
-            var renderers = GetComponentsInChildren<Renderer>();
-            var originalColors = new Dictionary<Renderer, Color>();
-            foreach (var r in renderers)
-            {
-                if (r.material != null && r.material.HasProperty("_Color"))
-                {
-                    originalColors[r] = r.material.color;
-                    r.material.color = Color.red;
-                }
-            }
-
-            float t = 0f;
-            while (t < 0.08f)
-            {
-                transform.localRotation = Quaternion.Slerp(orig, tilt, t / 0.08f);
-                t += Time.deltaTime;
-                yield return null;
-            }
-
-            // Restore colors
-            foreach (var kvp in originalColors)
-            {
-                if (kvp.Key != null && kvp.Key.material != null && kvp.Key.material.HasProperty("_Color"))
-                {
-                    kvp.Key.material.color = kvp.Value;
-                }
-            }
-
-            t = 0f;
-            while (t < 0.16f)
-            {
-                transform.localRotation = Quaternion.Slerp(tilt, orig, t / 0.16f);
-                t += Time.deltaTime;
-                yield return null;
-            }
-
-            transform.localRotation = orig;
+            GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            box.name = name;
+            box.transform.SetParent(parent);
+            box.transform.position = pos;
+            box.transform.localScale = new Vector3(0.18f, 0.08f, 0.14f);
+            Material m = CreateMaterial(new Color(0.85f, 0.15f, 0.12f, 1f));
+            if (m != null) box.GetComponent<Renderer>().material = m;
         }
     }
 }
