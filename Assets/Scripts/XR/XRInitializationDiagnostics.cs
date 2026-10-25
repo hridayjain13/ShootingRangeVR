@@ -122,7 +122,7 @@ namespace IVRAR.Group02.XR
 
             // 4. Query Display Refresh Rate
             _displaySubsystems.Clear();
-            SubsystemManager.GetInstances(_displaySubsystems);
+            SubsystemManager.GetSubsystems(_displaySubsystems);
 
             _reportedRefreshRateHz = -1f;
             _isRefreshRateVerified = false;

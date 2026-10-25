@@ -63,7 +63,7 @@ namespace Ammunition.GrenadeStructure
 
         public void Activate()
         {
-            _rigidbody.velocity = Vector3.up;
+            _rigidbody.linearVelocity = Vector3.up;
             _rigidbody.angularVelocity = Vector3.zero;
 
             foreach (var col in _colliders)

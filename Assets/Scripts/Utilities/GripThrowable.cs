@@ -15,7 +15,7 @@ namespace Utilities
 
             if (bestGrabType != GrabTypes.Grip) return;
 
-            if (rigidbody.velocity.magnitude >= catchingThreshold)
+            if (rigidbody.linearVelocity.magnitude >= catchingThreshold)
                 hand.AttachObject(gameObject, bestGrabType, attachmentFlags);
         }
 

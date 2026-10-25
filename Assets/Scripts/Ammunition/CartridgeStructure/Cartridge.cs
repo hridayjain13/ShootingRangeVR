@@ -20,7 +20,7 @@ namespace Ammunition.CartridgeStructure
 
         public void Activate()
         {
-            RigidBody.velocity = Vector3.up;
+            RigidBody.linearVelocity = Vector3.up;
             RigidBody.angularVelocity = Vector3.zero;
 
             gameObject.SetActive(true);

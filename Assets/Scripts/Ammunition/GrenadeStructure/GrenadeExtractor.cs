@@ -41,7 +41,7 @@ namespace Ammunition.GrenadeStructure
 
             var rb = fuse.GetRigidbody();
             rb.isKinematic = false;
-            rb.velocity = hand.GetTrackedObjectVelocity();
+            rb.linearVelocity = hand.GetTrackedObjectVelocity();
             rb.angularVelocity = hand.GetTrackedObjectAngularVelocity();
             
             _grenadeAudio.PlayLoadSound();

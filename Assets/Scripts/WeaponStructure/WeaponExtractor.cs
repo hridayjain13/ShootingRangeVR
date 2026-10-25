@@ -33,7 +33,7 @@ namespace WeaponStructure
             magazineTransform.rotation = _extractTransform.rotation;
 
             var rb = magazine.GetRigidbody();
-            rb.velocity = hand.GetTrackedObjectVelocity();
+            rb.linearVelocity = hand.GetTrackedObjectVelocity();
             rb.angularVelocity = hand.GetTrackedObjectAngularVelocity();
 
             _weaponAudio.PlayUnloadMagazineSound();

@@ -38,7 +38,7 @@ namespace MagazineStructure
 
         public void Deactivate()
         {
-            Rigidbody.velocity = Vector3.down;
+            Rigidbody.linearVelocity = Vector3.down;
             Rigidbody.angularVelocity = Vector3.zero;
 
             gameObject.SetActive(false);

@@ -34,7 +34,7 @@ namespace MagazineStructure
 
             var rb = cartridge.GetRigidbody();
             hand.GetEstimatedPeakVelocities(out var velocity, out var angularVelocity);
-            rb.velocity = velocity;
+            rb.linearVelocity = velocity;
             rb.angularVelocity = angularVelocity;
 
             _magazineAudio.PlayLoadBulletSound();
