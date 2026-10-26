@@ -8,12 +8,10 @@
       "url": "https://npm.developer.oculus.com"
     },
     "com.meta.xr.simulator": {
-      "version": "72.0.0",
+      "version": "81.0.1",
       "depth": 0,
       "source": "registry",
-      "dependencies": {
-        "com.unity.editorcoroutines": "1.0.0"
-      },
+      "dependencies": {},
       "url": "https://npm.developer.oculus.com"
     },
     "com.unity.burst": {
@@ -44,13 +42,6 @@
         "com.unity.nuget.mono-cecil": "1.11.6",
         "com.unity.test-framework.performance": "3.0.3"
       },
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.editorcoroutines": {
-      "version": "1.1.0",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.ext.nunit": {
